@@ -55,6 +55,7 @@ export class CInteraction {
 }
 */
 
+// Extended version of discord.js interactions
 interface XInteraction {
     genButtonID: (buttonName: string, ...args: string[]) => string;
 }
