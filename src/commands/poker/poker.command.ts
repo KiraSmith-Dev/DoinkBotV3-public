@@ -43,7 +43,7 @@ export async function execute(interaction: XCommandInteraction) {
             new MessageButton()
                 .setCustomId(interaction.genButtonID('cancel', pokerGame._id))
                 .setLabel('Cancel')
-                .setStyle('DANGER'),
+                .setStyle('DANGER')
         );
     
     await interaction.editReply({ content: `Poker game: Waiting for ${opponent.username}`, components: [row] });
