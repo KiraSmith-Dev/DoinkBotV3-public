@@ -2,7 +2,7 @@ import { ButtonInteraction, CommandInteraction, Interaction, InteractionReplyOpt
 import * as config from '$config';
 import { useTryAsync } from 'no-try';
 import { commands } from '$core/loadCommands';
-import { CBase, Command, XInteractionFactory } from '$core/coreTypes';
+import { CBase, Command, COptions, XInteractionFactory } from '$core/coreTypes';
 import handleInteractionError from '$core/handleInteractionError';
 
 export type ValidatorType = 'isCommand' | 'isButton' | 'isSelectMenu';
@@ -14,31 +14,44 @@ export default class InteractionHandler<T> {
         this.validator = validator;
     }
     
-    async #tryUseHandler(handler: (interaction: unknown, ...args: String[]) => Promise<void> | Promise<boolean>, command: Command, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, args: string[]): Promise<[boolean, boolean]> {
+    async #tryUseHandler(handler: (interaction: unknown, ...args: String[]) => Promise<void> | Promise<boolean>, command: Command, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, args: string[], options: COptions): Promise<[boolean, boolean]> {
         const [err, res] = await useTryAsync(async () => {
             if (typeof handler != 'function') {
-                useTryAsync(() => interaction.reply({ content: 'Invalid interaction (Not implemented)', ephemeral: true }));
+                await useTryAsync(() => interaction.reply({ content: 'Invalid interaction (Not implemented)', ephemeral: true }));
                 return false;
             }
             
             return ((await handler(interaction, ...args)) ? true : false);
         });
         
-        return [await handleInteractionError(err, command, interaction), res];
+        if (!err)
+            return [false, res];
+        
+        const didSentThinkingMessage = interaction.deferred && !options.isUpdate;
+        if (didSentThinkingMessage)
+            await useTryAsync(() => interaction.deleteReply());
+        
+        await useTryAsync(() => ((interaction.replied || interaction.deferred) ? interaction.followUp : interaction.reply).apply(interaction, [{ content: 'There was an error while executing your interaction', ephemeral: true }]));
+        
+        return [true, res];
     }
     
     async #executeFromBase(handlers: CBase<any>, command: Command, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, args: string[]): Promise<void> {
         if (!handlers.options.skipValidate) {
-            const [err, res] = await this.#tryUseHandler(handlers.validate, command, interaction, args);
-            // We can assume validate() handled sending an error msg to the user if the validation check failed
-            if (err || !res)
+            const [err, res] = await this.#tryUseHandler(handlers.validate, command, interaction, args, handlers.options);
+            // If the validation check failed, we can give a default error if one hasn't already been sent
+            if (err || !res) {
+                if (!interaction.replied)
+                    await useTryAsync(() => interaction.reply({ content: 'Interaction failed (Error or invalid input)', ephemeral: true }));
+                
                 return;
+            }
         }
         
         const options: InteractionReplyOptions = { ephemeral: handlers.options.ephemeral };
         await (!interaction.isCommand() && handlers.options.isUpdate ? interaction.deferUpdate : interaction.deferReply).apply(interaction, [options]);
         
-        await this.#tryUseHandler(handlers.execute, command, interaction, args);
+        await this.#tryUseHandler(handlers.execute, command, interaction, args, handlers.options);
     }
     
     async handle(interaction: Interaction) {
