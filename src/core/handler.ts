@@ -26,8 +26,8 @@ export default class InteractionHandler<T> {
         if (!err)
             return [false, res];
         
-        const didSentThinkingMessage = interaction.deferred && !options.isUpdate;
-        if (didSentThinkingMessage)
+        console.error(err);
+        if (interaction.deferred && !options.isUpdate)
             await useTryAsync(() => interaction.deleteReply());
         
         await useTryAsync(() => ((interaction.replied || interaction.deferred) ? interaction.followUp : interaction.reply).apply(interaction, [{ content: 'There was an error while executing your interaction', ephemeral: true }]));
