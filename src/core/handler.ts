@@ -3,7 +3,6 @@ import * as config from '$config';
 import { useTryAsync } from 'no-try';
 import { commands } from '$core/loadCommands';
 import { CBase, Command, COptions, XInteractionFactory } from '$core/coreTypes';
-import handleInteractionError from '$core/handleInteractionError';
 
 export type ValidatorType = 'isCommand' | 'isButton' | 'isSelectMenu';
 
