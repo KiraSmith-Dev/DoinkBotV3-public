@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageActionRow, MessageButton, Collection, CommandInteraction } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
 import { PokerGameType } from '$commands/poker/modules/pokerTypes';
+import { XCommandInteraction } from '$root/core/coreTypes';
 
 export const data = new SlashCommandBuilder()
         .setName('poker')
@@ -11,16 +12,22 @@ export const data = new SlashCommandBuilder()
                 .setDescription('The user to play against')
                 .setRequired(true));
 
-export async function execute(interaction: CommandInteraction) {
+export async function validate(interaction: XCommandInteraction): Promise<boolean> {
     const opponent = interaction.options.getUser('opponent', true);
     if (opponent.id == interaction.user.id)
-        return interaction.reply({ content: `Failed: Can't start a poker game with yourself`, ephemeral: true });
+        return interaction.replyError(`Failed: Can't start a poker game with yourself`);
     
     if (await PokerGame.anyGameIncludePlayer(interaction.user.id))
-        return interaction.reply({ content: `Failed: You're already in a poker game`, ephemeral: true });
+        return interaction.replyError(`Failed: You're already in a poker game`);
     
     if (await PokerGame.anyGameIncludePlayer(opponent.id))
-        return interaction.reply({ content: `Failed: They're already in a poker game`, ephemeral: true });
+        return interaction.replyError(`Failed: They're already in a poker game`);
+    
+    return true;
+}
+
+export async function execute(interaction: XCommandInteraction) {
+    const opponent = interaction.options.getUser('opponent', true);
     
     // TODO: Make buyin a command option, and display how much it is
     const pokerGame = new PokerGame(PokerGameType.SINGLE, 10, interaction.user, [opponent]);
@@ -30,14 +37,14 @@ export async function execute(interaction: CommandInteraction) {
     const row = new MessageActionRow()
         .addComponents(
             new MessageButton()
-                .setCustomId(`poker:accept:${pokerGame._id}`)
+                .setCustomId(interaction.genButtonID('accept', pokerGame._id))
                 .setLabel('Accept')
                 .setStyle('SUCCESS'),
             new MessageButton()
-                .setCustomId(`poker:cancel:${pokerGame._id}`)
+                .setCustomId(interaction.genButtonID('cancel', pokerGame._id))
                 .setLabel('Cancel')
                 .setStyle('DANGER'),
         );
     
-    await interaction.reply({ content: `Poker game: Waiting for ${opponent.username}`, components: [row] });
+    await interaction.editReply({ content: `Poker game: Waiting for ${opponent.username}`, components: [row] });
 }

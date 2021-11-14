@@ -58,6 +58,7 @@ export class CInteraction {
 // Extended version of discord.js interactions
 interface XInteraction {
     genButtonID: (buttonName: string, ...args: string[]) => string;
+    replyError: (message: string) => false;
 }
 
 export interface XCommandInteraction extends CommandInteraction, XInteraction {}
@@ -65,11 +66,16 @@ export interface XButtonInteraction extends ButtonInteraction, XInteraction {}
 export interface XSelectMenuInteraction extends SelectMenuInteraction, XInteraction {}
 
 export function XInteractionFactory(commandName: string, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction): CommandInteraction | ButtonInteraction | SelectMenuInteraction {
-    
+    const xInteraction: XInteraction = (interaction as unknown as XInteraction);
     // Usage of any since we'll cast these to XInteractions later, for now they have to stay the same for `isButton()` type calls to work...
-    (interaction as any).genButtonID = function (buttonName: string, ...args: string[]) {
+    xInteraction.genButtonID = function (buttonName: string, ...args: string[]) {
         return `${commandName}:${buttonName}:${args.join(':')}`;
-    }
+    };
+    
+    xInteraction.replyError = function (message: string) {
+        interaction.reply({ content: message, ephemeral: true });
+        return false;
+    };
     
     return interaction;
 }
