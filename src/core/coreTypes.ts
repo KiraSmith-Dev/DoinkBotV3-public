@@ -58,7 +58,7 @@ export class CInteraction {
 // Extended version of discord.js interactions
 interface XInteraction {
     genButtonID: (buttonName: string, ...args: string[]) => string;
-    replyError: (message: string) => false;
+    replyError: (message: string) => Promise<false>;
 }
 
 export interface XCommandInteraction extends CommandInteraction, XInteraction {}
@@ -72,8 +72,8 @@ export function XInteractionFactory(commandName: string, interaction: CommandInt
         return `${commandName}:${buttonName}:${args.join(':')}`;
     };
     
-    xInteraction.replyError = function (message: string) {
-        interaction.reply({ content: message, ephemeral: true });
+    xInteraction.replyError = async function (message: string) {
+        await interaction.reply({ content: message, ephemeral: true });
         return false;
     };
     
