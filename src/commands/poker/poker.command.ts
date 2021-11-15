@@ -15,13 +15,13 @@ export const data = new SlashCommandBuilder()
 export async function validate(interaction: XCommandInteraction): Promise<boolean> {
     const opponent = interaction.options.getUser('opponent', true);
     if (opponent.id == interaction.user.id)
-        return interaction.replyError(`Failed: Can't start a poker game with yourself`);
+        return await interaction.replyError(`Failed: Can't start a poker game with yourself`);
     
     if (await PokerGame.anyGameIncludePlayer(interaction.user.id))
-        return interaction.replyError(`Failed: You're already in a poker game`);
+        return await interaction.replyError(`Failed: You're already in a poker game`);
     
     if (await PokerGame.anyGameIncludePlayer(opponent.id))
-        return interaction.replyError(`Failed: They're already in a poker game`);
+        return await interaction.replyError(`Failed: They're already in a poker game`);
     
     return true;
 }
