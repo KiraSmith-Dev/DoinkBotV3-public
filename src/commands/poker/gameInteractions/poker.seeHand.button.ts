@@ -1,6 +1,6 @@
 import { MessageEmbed } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import { generateHandCanvas } from '$commands/poker/modules/generateHandImage';
+import { generateHandFanCanvas } from '$commands/poker/modules/generateHandFan';
 import { XButtonInteraction, XOptions } from '$core/coreTypes';
 import { createCanvas, loadImage } from 'canvas';
 import { store } from '$modules/imageServer';
@@ -27,7 +27,7 @@ export async function execute(interaction: XButtonInteraction, gameID: string) {
     
     ctx.drawImage(await pokerTableImage, 0, 0, canvas.width, canvas.height);
     
-    const handCanvas = await generateHandCanvas(cards);
+    const handCanvas = await generateHandFanCanvas(cards);
     
     ctx.drawImage(handCanvas, (canvas.width/2) - (handCanvas.width/2), (canvas.height/2) - (handCanvas.height/2));
     

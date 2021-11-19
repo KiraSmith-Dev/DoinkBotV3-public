@@ -1,23 +1,33 @@
-import { getImage } from './cards';
-import { Canvas, createCanvas } from 'canvas';
+import { cardsToSolveFormat, Dealer, getImage } from './cards';
+import { Canvas, createCanvas, NodeCanvasRenderingContext2D } from 'canvas';
 
 const displayCardWidth = 100;
 const displayCardHeight = Math.round(1056 * (displayCardWidth / 691));
 const displayCardPadding = 10;
 const displayCardTotalSpace = displayCardWidth + displayCardPadding;
 
+const amountToRotate = (60 / 4);
+const widthRotationPadding = displayCardWidth / 3;
+const centerXY = 1000;
+
 function degToRad(degrees: number) {
     return degrees * Math.PI / 180;
 }
 
+function rotateAtPoint(ctx: NodeCanvasRenderingContext2D, x: number, y: number, degrees: number) {
+    ctx.translate(x, y)
+    ctx.rotate(degToRad(degrees));
+    ctx.translate(x * -1, y * -1);
+}
+
 export async function generateHandFanCanvas(cards: string[]): Promise<Canvas> {
-	const canvas = createCanvas((displayCardTotalSpace * cards.length) - displayCardPadding, displayCardHeight);
+    const canvas = createCanvas(centerXY * 2, centerXY * 2);
 	const ctx = canvas.getContext('2d');
 	
-    const amountToRotate = (90 / 4);
     const totalRotation = (cards.length - 1) * amountToRotate;
     
-    ctx.rotate(degToRad((totalRotation / 2) * -1));
+    rotateAtPoint(ctx, centerXY, centerXY, (totalRotation / 2) * -1);
+    console.log(totalRotation);
     
 	for (let i = 0; i < cards.length; i++) {
 		let card = cards[i];
@@ -25,8 +35,15 @@ export async function generateHandFanCanvas(cards: string[]): Promise<Canvas> {
 		if (!card)
 			throw 'Invalid card when generating image'; // Should never happen at runtime because of typescript checks
 		
-		ctx.drawImage(await getImage(card), i * displayCardTotalSpace, 0, displayCardWidth, displayCardHeight);
-        ctx.rotate(degToRad(amountToRotate));
+        ctx.save();
+        
+        rotateAtPoint(ctx, centerXY, centerXY, i  * amountToRotate);
+        console.log(`Rotating: ${i * amountToRotate}`);
+        //ctx.translate(displayCardWidth * -1, displayCardHeight * -1);
+        
+		ctx.drawImage(await getImage(card), centerXY - displayCardWidth + widthRotationPadding + ((i / 4) * (displayCardWidth - (widthRotationPadding * 2))), centerXY - displayCardHeight + (displayCardHeight / 12), displayCardWidth, displayCardHeight);
+        
+        ctx.restore();
 	}
 	
     return canvas;
