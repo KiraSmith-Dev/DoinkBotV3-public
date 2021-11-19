@@ -4,6 +4,7 @@ import { Dealer, cardsToSolveFormat } from '$commands/poker/modules/cards';
 import { generateHandCanvas } from '$commands/poker/modules/generateHandImage';
 import { createCanvas, loadImage } from 'canvas';
 import pathAlias from 'path-alias';
+import { XOptions } from '$core/coreTypes';
 
 export const data = new SlashCommandBuilder()
 		.setName('hand')
@@ -13,9 +14,11 @@ const dealer = new Dealer();
 
 const pokerTableImage = loadImage(pathAlias.resolve('$resources/cards/PokerTable.png'));
 
+export const options: XOptions = {
+	skipValidate: true
+}
+
 export async function execute(interaction: CommandInteraction) {
-	await interaction.deferReply();
-	
 	const cards = cardsToSolveFormat(dealer.shuffle().draw(5));
 	
 	const canvas = createCanvas(2560, 1440);

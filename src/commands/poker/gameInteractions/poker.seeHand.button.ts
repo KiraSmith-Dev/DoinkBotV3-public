@@ -1,23 +1,39 @@
-import { ButtonInteraction } from 'discord.js';
-import { failOut } from '$modules/interaction-util';
+import { MessageEmbed } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import generateHandImage from '$commands/poker/modules/generateHandImage';
-import { classToPlain } from 'class-transformer';
-import { currentActionPlayerChecker } from './isCurrentActionPlayer';
+import { generateHandCanvas } from '$commands/poker/modules/generateHandImage';
+import { XButtonInteraction, XOptions } from '$core/coreTypes';
+import { createCanvas, loadImage } from 'canvas';
+import { store } from '$modules/imageServer';
+import pathAlias from 'path-alias';
 
-export default async function (interaction: ButtonInteraction, gameID: string) {
+export const options: XOptions = {
+    ephemeral: true
+}
+
+export { validate } from './isCurrentActionPlayer';
+
+const pokerTableImage = loadImage(pathAlias.resolve('$resources/cards/PokerTable.png'));
+
+export async function execute(interaction: XButtonInteraction, gameID: string) {
     const pokerGame = await PokerGame.getFromDatabase(gameID);
     
     if (!pokerGame)
-        return await failOut(interaction, 'Failed: Poker game not found. Did it expire?');
-    
-    if (!pokerGame.includesPlayer(interaction.user.id))
-        return await failOut(interaction, `Failed: You're not a part of this game`);
+        throw `pokerGame wasn't valid`;
     
     const cards = pokerGame.getRound().cardRound.getHand(interaction.user.id).cards;
+    console.log(cards);
+    const canvas = createCanvas(1280, 720);
+    const ctx = canvas.getContext('2d');
     
-    await interaction.reply({
-		files: [ await generateHandImage(cards) ],
-		ephemeral: true
-	});
+    ctx.drawImage(await pokerTableImage, 0, 0, canvas.width, canvas.height);
+    
+    const handCanvas = await generateHandCanvas(cards);
+    
+    ctx.drawImage(handCanvas, (canvas.width/2) - (handCanvas.width/2), (canvas.height/2) - (handCanvas.height/2));
+    
+    const url = await store(canvas.toBuffer('image/png'));
+    const embed = new MessageEmbed()
+            .setImage(url);
+    
+    await interaction.editReply({ embeds: [embed] });
 }

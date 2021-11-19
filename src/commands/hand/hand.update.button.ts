@@ -9,7 +9,7 @@ import pathAlias from 'path-alias';
 import { randomString } from '$modules/random';
 import { store } from '$modules/imageServer';
 import { getDB } from '$modules/database';
-import { XButtonInteraction } from '$root/core/coreTypes';
+import { XButtonInteraction, XOptions } from '$root/core/coreTypes';
 
 const db = getDB();
 const images = db.collection('images');
@@ -18,11 +18,11 @@ const dealer = new Dealer();
 
 const pokerTableImage = loadImage(pathAlias.resolve('$resources/cards/PokerTable.png'));
 
-export async function validate(interaction: ButtonInteraction): Promise<boolean> {
-    return true;
+export const options: XOptions = {
+    skipValidate: true
 }
 
-export default async function (interaction: XButtonInteraction) {
+export async function execute(interaction: XButtonInteraction) {
     await interaction.deferUpdate();
     
     const cards = cardsToSolveFormat(dealer.reset().shuffle().draw(5));

@@ -52,7 +52,6 @@ export class PokerRound {
         this.bettingRound = new PokerBettingRound(this.roundPlayers);
         // In a 2 player game, pre-flop (first round of betting) the dealer gets to act first, otherwise the dealer acts last (+ 1 to dealer index)
         this.currentActionIndex = this.calcDefaultActionIndex();
-        console.log(this.baseGame);
     }
     
     getPlayer(ownerID: string): PokerRoundPlayer {

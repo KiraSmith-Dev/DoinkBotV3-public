@@ -1,8 +1,14 @@
 import { SelectMenuInteraction } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import { currentActionPlayerChecker } from './isCurrentActionPlayer';
+import { XSelectMenuInteraction, XOptions } from '$core/coreTypes';
 
-export default async function (interaction: SelectMenuInteraction, gameID: string) {
+export const options: XOptions = {
+    isUpdate: true
+}
+
+export { validate } from './isCurrentActionPlayer';
+
+export async function execute(interaction: XSelectMenuInteraction, gameID: string) {
     if (!interaction.values[0])
         throw 'Interaction with select menu had no value';
     
@@ -10,9 +16,8 @@ export default async function (interaction: SelectMenuInteraction, gameID: strin
     
     const pokerGame = await PokerGame.getFromDatabase(gameID);
     
-    const checker = new currentActionPlayerChecker();
-    if (!checker.isCurrentActionPlayer(interaction, pokerGame))
-        return await checker.sendError();
+    if (!pokerGame)
+        throw `pokerGame wasn't valid`;
     
     const gamePlayer = pokerGame.getRound().currentActionPlayer.gamePlayer;
     
@@ -23,5 +28,5 @@ export default async function (interaction: SelectMenuInteraction, gameID: strin
     
     await pokerGame.saveToDatabase();
     
-    await interaction.update(await pokerGame.generateInteractionUpdate());
+    await interaction.editReply(await pokerGame.generateInteractionUpdate());
 }

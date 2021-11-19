@@ -1,9 +1,8 @@
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import { failOut } from '$modules/interaction-util';
-import { ButtonInteraction, SelectMenuInteraction } from 'discord.js';
+import { XButtonInteraction, XSelectMenuInteraction } from '$core/coreTypes';
 
-export class currentActionPlayerChecker {
-    interaction: ButtonInteraction | SelectMenuInteraction | null = null;
+class CurrentActionPlayerChecker {
+    interaction: XButtonInteraction | XSelectMenuInteraction | null = null;
     errorMsg: string | null = null;
     
     #setError(msg: string) {
@@ -11,7 +10,7 @@ export class currentActionPlayerChecker {
         return false;
     }
     
-    isCurrentActionPlayer(interaction: ButtonInteraction | SelectMenuInteraction, pokerGame: PokerGame | null): pokerGame is PokerGame {
+    isCurrentActionPlayer(interaction: XButtonInteraction | XSelectMenuInteraction, pokerGame: PokerGame | null): pokerGame is PokerGame {
         this.interaction = interaction;
         
         if (!pokerGame)
@@ -32,13 +31,23 @@ export class currentActionPlayerChecker {
         return true;
     }
     
-    async sendError() {
+    async sendError(): Promise<false> {
         if (!this.errorMsg)
             throw 'Tried to send error without an error being set';
         
         if (!this.interaction)
             throw 'Tried to send error without an interaction being set';
         
-        return await failOut(this.interaction, this.errorMsg);
+        return this.interaction.replyError(this.errorMsg);
     }
+}
+
+export async function validate(interaction: XButtonInteraction | XSelectMenuInteraction, gameID: string): Promise<boolean> {
+    const pokerGame = await PokerGame.getFromDatabase(gameID);
+    
+    const checker = new CurrentActionPlayerChecker();
+    if (!checker.isCurrentActionPlayer(interaction, pokerGame))
+        return await checker.sendError();
+    
+    return true;
 }

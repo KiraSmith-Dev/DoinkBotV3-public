@@ -1,8 +1,8 @@
-import { ButtonInteraction, CommandInteraction, Interaction, InteractionReplyOptions, InteractionUpdateOptions, SelectMenuInteraction } from 'discord.js';
+import { Interaction, InteractionReplyOptions } from 'discord.js';
 import * as config from '$config';
 import { useTryAsync } from 'no-try';
 import { commands } from '$core/loadCommands';
-import { CBase, Command, COptions, XInteractionFactory } from '$core/coreTypes';
+import { XBase, XInteractionFactory, XCommandInteraction, XButtonInteraction, XSelectMenuInteraction } from '$core/coreTypes';
 
 export type ValidatorType = 'isCommand' | 'isButton' | 'isSelectMenu';
 
@@ -13,10 +13,10 @@ export default class InteractionHandler<T> {
         this.validator = validator;
     }
     
-    async #tryUseHandler(handler: (interaction: unknown, ...args: String[]) => Promise<void> | Promise<boolean>, command: Command, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, args: string[], options: COptions): Promise<[boolean, boolean]> {
+    async #tryUseHandler(handler: (interaction: unknown, ...args: String[]) => Promise<void> | Promise<boolean>, interaction: XCommandInteraction | XButtonInteraction | XSelectMenuInteraction, args: string[]): Promise<[boolean, boolean]> {
         const [err, res] = await useTryAsync(async () => {
             if (typeof handler != 'function') {
-                await useTryAsync(() => interaction.reply({ content: 'Invalid interaction (Not implemented)', ephemeral: true }));
+                await interaction.deleteDeferReplyOrFollowUp('Invalid interaction (Not implemented)', 'error');
                 return false;
             }
             
@@ -27,21 +27,23 @@ export default class InteractionHandler<T> {
             return [false, res];
         
         console.error(err);
-        if (interaction.deferred && !options.isUpdate)
-            await useTryAsync(() => interaction.deleteReply());
-        
-        await useTryAsync(() => ((interaction.replied || interaction.deferred) ? interaction.followUp : interaction.reply).apply(interaction, [{ content: 'There was an error while executing your interaction', ephemeral: true }]));
+        await interaction.deleteDeferReplyOrFollowUp('There was an error while executing your interaction', 'error');
         
         return [true, res];
     }
     
-    async #executeFromBase(handlers: CBase<any>, command: Command, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, args: string[]): Promise<void> {
+    async #executeFromBase(handlers: XBase<any>, interaction: XCommandInteraction | XButtonInteraction | XSelectMenuInteraction, args: string[]): Promise<void> {
         if (!handlers.options.skipValidate) {
-            const [err, res] = await this.#tryUseHandler(handlers.validate, command, interaction, args, handlers.options);
+            const [err, res] = await this.#tryUseHandler(handlers.validate, interaction, args);
             // If the validation check failed, we can give a default error if one hasn't already been sent
             if (err || !res) {
+                if (err) {
+                    console.error(err);
+                    await useTryAsync(() => interaction.replyError('Interaction failed (Error)'));
+                }
+                
                 if (!interaction.replied)
-                    await useTryAsync(() => interaction.reply({ content: 'Interaction failed (Error or invalid input)', ephemeral: true }));
+                    await useTryAsync(() => interaction.replyError('Interaction failed (Invalid input)'));
                 
                 return;
             }
@@ -50,7 +52,7 @@ export default class InteractionHandler<T> {
         const options: InteractionReplyOptions = { ephemeral: handlers.options.ephemeral };
         await (!interaction.isCommand() && handlers.options.isUpdate ? interaction.deferUpdate : interaction.deferReply).apply(interaction, [options]);
         
-        await this.#tryUseHandler(handlers.execute, command, interaction, args, handlers.options);
+        await this.#tryUseHandler(handlers.execute, interaction, args);
     }
     
     async handle(interaction: Interaction) {
@@ -75,7 +77,7 @@ export default class InteractionHandler<T> {
             if (!command)
                 return useTryAsync(() => interaction.reply({ content: 'Invalid interaction (Not found)', ephemeral: true }));
             
-            return this.#executeFromBase(command.handlers, command, XInteractionFactory(interaction.commandName, interaction), []);
+            return this.#executeFromBase(command.handlers, XInteractionFactory(interaction.commandName, interaction, command.handlers.options), []);
         }
         
         const args = interaction.customId.split(':');
@@ -107,6 +109,6 @@ export default class InteractionHandler<T> {
                 return interaction.reply({ content: 'Something went really wrong... <@243512754541953024>' });
             });
         
-        this.#executeFromBase(handlers, command, XInteractionFactory(cmdName, interaction), args);
+        this.#executeFromBase(handlers, XInteractionFactory(cmdName, interaction, handlers.options), args);
     }
 }

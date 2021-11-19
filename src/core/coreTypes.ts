@@ -1,30 +1,30 @@
-import { Collection, ButtonInteraction, CommandInteraction, SelectMenuInteraction, Interaction } from 'discord.js';
+import { Collection, ButtonInteraction, CommandInteraction, SelectMenuInteraction, Interaction, InteractionReplyOptions, MessagePayload } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
-export type COptions = {
+export type XOptions = {
     isUpdate?: boolean;
     ephemeral?: boolean;
     skipValidate?: boolean;
 }
 
-export type CBase<T> = {
+export type XBase<T> = {
     validate: (interaction: T, ...args: String[]) => Promise<boolean>;
     execute: (interaction: T, ...args: String[]) => Promise<void>;
-    options: COptions;
+    options: XOptions;
 }
 
-export type CButton = CBase<XButtonInteraction>;
+export type XButton = XBase<XButtonInteraction>;
 
-export type CSelectMenu = CBase<XSelectMenuInteraction>;
+export type XSelectMenu = XBase<XSelectMenuInteraction>;
 
-export type Command = {
-    handlers: CBase<XCommandInteraction>;
-    buttons?: { [key: string]: CButton };
-    selectMenus?: { [key: string]: CSelectMenu };
+export type XCommand = {
+    handlers: XBase<XCommandInteraction>;
+    buttons?: { [key: string]: XButton };
+    selectMenus?: { [key: string]: XSelectMenu };
     data: SlashCommandBuilder;
 }
 
-export enum CInteractionReplyStage {
+export enum XInteractionReplyStage {
     DEFER = 'Defer',
     UPDATE = 'Update',
     EDITREPLY = 'Reply',
@@ -57,25 +57,54 @@ export class CInteraction {
 
 // Extended version of discord.js interactions
 interface XInteraction {
+    xOptions: XOptions;
     genButtonID: (buttonName: string, ...args: string[]) => string;
     replyError: (message: string) => Promise<false>;
+    deleteDeferFollowUp: (message: string, type: 'success' | 'error') => Promise<false>;
+    deleteDeferReplyOrFollowUp: (message: string, type: 'success' | 'error') => Promise<false>;
 }
 
 export interface XCommandInteraction extends CommandInteraction, XInteraction {}
 export interface XButtonInteraction extends ButtonInteraction, XInteraction {}
 export interface XSelectMenuInteraction extends SelectMenuInteraction, XInteraction {}
 
-export function XInteractionFactory(commandName: string, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction): CommandInteraction | ButtonInteraction | SelectMenuInteraction {
+function generateSuccessMessage(message: string): InteractionReplyOptions | MessagePayload {
+    return { content: message, ephemeral: true };
+}
+
+function generateErrorMessage(message: string): InteractionReplyOptions | MessagePayload {
+    return { content: message, ephemeral: true };
+}
+
+export function XInteractionFactory(commandName: string, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, xOptions: XOptions): XCommandInteraction | XButtonInteraction | XSelectMenuInteraction {
     const xInteraction: XInteraction = (interaction as unknown as XInteraction);
-    // Usage of any since we'll cast these to XInteractions later, for now they have to stay the same for `isButton()` type calls to work...
+    
+    xInteraction.xOptions = xOptions;
+    
     xInteraction.genButtonID = function (buttonName: string, ...args: string[]) {
         return `${commandName}:${buttonName}:${args.join(':')}`;
     };
     
     xInteraction.replyError = async function (message: string) {
-        await interaction.reply({ content: message, ephemeral: true });
+        await interaction.reply(generateErrorMessage(message));
         return false;
     };
     
-    return interaction;
+    xInteraction.deleteDeferReplyOrFollowUp = async function (message: string, type: 'success' | 'error') {
+        if (interaction.deferred && !xInteraction.xOptions.isUpdate && !xInteraction.xOptions.ephemeral)
+            interaction.deleteReply();
+        
+        await ((interaction.deferred && !xInteraction.xOptions.isUpdate && xInteraction.xOptions.ephemeral) ? interaction.editReply : (interaction.replied || interaction.deferred) ? interaction.followUp : interaction.reply).apply(interaction, [type == 'success' ? generateSuccessMessage(message) : generateErrorMessage(message)]);
+        
+        return false;
+    }
+    
+    xInteraction.deleteDeferFollowUp = async function (message: string, type: 'success' | 'error') {
+        if (!interaction.deferred)
+            throw `Interaction wasn't deferred, but deleteDeferFollowUp was called`;
+        
+        return xInteraction.deleteDeferReplyOrFollowUp(message, type);
+    }
+    
+    return interaction as any;
 }

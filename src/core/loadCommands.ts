@@ -1,9 +1,9 @@
 import { Collection } from 'discord.js';
 import recursiveReadDir from 'recursive-readdir';
 import pathAlias from 'path-alias';
-import { Command, CBase } from '$core/coreTypes';
+import { XCommand, XBase } from '$core/coreTypes';
 
-function loadInteractionFile(type: 'buttons' | 'selectMenus', commands: Collection<string, Command>, file: string): void {
+function loadInteractionFile(type: 'buttons' | 'selectMenus', commands: Collection<string, XCommand>, file: string): void {
     const interactionPath = file.split('\\');
     const interactionArgs = interactionPath[interactionPath.length - 1]?.split('.');
     
@@ -34,16 +34,15 @@ function loadInteractionFile(type: 'buttons' | 'selectMenus', commands: Collecti
     if (list[interactionName])
         throw `Multiple definitions of button: ${file}`;
     
-    const interaction: CBase<unknown> = require(file);
+    const interaction: XBase<unknown> = require(file);
     
-    // Would rather get hit with runtime errors, since it's faster to test stuff if we can load empty files without issues
-    /*
-    if (!interaction.validate)
-        throw `Interaction missing validate: ${file}`;
+    // Would rather get hit with runtime errors, since it's faster to test stuff if we can load empty files without issues, so just warnings
+    if (!interaction.validate && !interaction.options?.skipValidate)
+        console.warn(`Interaction missing validate: ${file}`);
     
     if (!interaction.execute)
-        throw `Interaction missing execute: ${file}`;
-    */
+        console.warn(`Interaction missing execute: ${file}`);
+    
     
     if (!interaction.options)
             interaction.options = {};
@@ -61,9 +60,9 @@ async function loadInteractionType(type: 'buttons' | 'selectMenus', suffix: stri
         loadInteractionFile(type, commands, file);
 }
 
-export let commands: Collection<string, Command> | null = null;
+export let commands: Collection<string, XCommand> | null = null;
 
-export async function loadCommands(): Promise<Collection<string, Command>> {
+export async function loadCommands(): Promise<Collection<string, XCommand>> {
     if (commands)
         return commands;
     
@@ -71,7 +70,7 @@ export async function loadCommands(): Promise<Collection<string, Command>> {
     const commandFiles = await recursiveReadDir(pathAlias.resolve('$commands'), [(file, stats) => !(file.endsWith('.command.js') || stats.isDirectory())]);
 
     for (const file of commandFiles) {
-        const command: Command = require(file);
+        const command: XCommand = require(file);
         
         if (!command.data || !command.data.name)
             continue;
@@ -89,6 +88,12 @@ export async function loadCommands(): Promise<Collection<string, Command>> {
         
         if (!command.handlers.options)
             command.handlers.options = {};
+        
+        if (!command.handlers.validate && !command.handlers.options.skipValidate)
+            console.warn(`Interaction missing validate: ${file}`);
+        
+        if (!command.handlers.execute)
+            console.warn(`Interaction missing execute: ${file}`);
         
         commands.set(command.data.name, command);
     }

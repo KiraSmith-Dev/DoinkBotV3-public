@@ -1,12 +1,12 @@
 import { CommandInteraction, MessageActionRow, MessageButton } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { COptions } from '$root/core/coreTypes';
+import { XOptions } from '$root/core/coreTypes';
 
 export const data = new SlashCommandBuilder()
 	.setName('ping')
 	.setDescription('Replies with Pong!');
 
-export const options: COptions = {
+export const options: XOptions = {
 	ephemeral: true,
 	skipValidate: true
 }

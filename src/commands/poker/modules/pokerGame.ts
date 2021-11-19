@@ -1,13 +1,10 @@
 import { random } from '$modules/random';
 import generateHandImage from './generateHandImage';
-import { PokerCardRound } from './pokerCardRound';
-import { User, MessageActionRow, MessageButton, MessageSelectMenu, InteractionUpdateOptions } from 'discord.js';
+import { User, MessageActionRow, MessageButton, MessageSelectMenu, WebhookEditMessageOptions } from 'discord.js';
 import { Type, classToPlain, plainToClass } from 'class-transformer';
 import { getDB } from '$modules/database';
 import { DeleteResult, UpdateResult, ObjectId } from 'mongodb';
-import { PokerBettingRound } from './pokerBettingRound';
 import { PokerGamePlayer, PokerGameType } from './pokerTypes';
-import { rotate } from '$modules/arrayUtil';
 import { PokerRound } from './pokerRound';
 const db = getDB();
 const pokerGames = db.collection('pokerGames');
@@ -320,7 +317,7 @@ export class PokerGame {
         ]
     }
     
-    async generateInteractionUpdate(): Promise<InteractionUpdateOptions> {
+    async generateInteractionUpdate(): Promise<WebhookEditMessageOptions> {
         if (!this.round)
             throw 'Tried to generate interaction update outside of poker round';
         

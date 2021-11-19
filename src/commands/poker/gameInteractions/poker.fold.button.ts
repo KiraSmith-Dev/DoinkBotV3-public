@@ -1,17 +1,22 @@
 import { ButtonInteraction } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import { currentActionPlayerChecker } from './isCurrentActionPlayer';
+import { XButtonInteraction, XOptions } from '$core/coreTypes';
 
-export default async function (interaction: ButtonInteraction, gameID: string) {
+export const options: XOptions = {
+    isUpdate: true
+}
+
+export { validate } from './isCurrentActionPlayer';
+
+export async function execute(interaction: XButtonInteraction, gameID: string) {
     const pokerGame = await PokerGame.getFromDatabase(gameID);
     
-    const checker = new currentActionPlayerChecker();
-    if (!checker.isCurrentActionPlayer(interaction, pokerGame))
-        return await checker.sendError();
+    if (!pokerGame)
+        throw `pokerGame wasn't valid`;
     
     pokerGame.doFold();
     
     await pokerGame.saveToDatabase();
     
-    await interaction.update(await pokerGame.generateInteractionUpdate());
+    await interaction.editReply(await pokerGame.generateInteractionUpdate());
 }
