@@ -34,6 +34,7 @@
 		);
 		
 		console.log('Successfully reloaded application (/) commands.');
+		console.log(commands);
 	} catch (error) {
 		console.error(error);
 	}
