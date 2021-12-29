@@ -21,7 +21,10 @@ export async function execute(interaction: XSelectMenuInteraction, gameID: strin
     
     const gamePlayer = pokerGame.getRound().currentActionPlayer.gamePlayer;
     
-    if (amount > pokerGame.maxRaise || gamePlayer.balance + pokerGame.getRound().bettingRound.getPlayer(gamePlayer.id).bet < amount + pokerGame.getRound().bettingRound.currentHighBet)
+    let bettingRound = pokerGame.getRound().bettingRound;
+    let currentBet = bettingRound.getPlayer(gamePlayer.id).bet;
+    
+    if (currentBet + amount > pokerGame.maxBet || gamePlayer.balance + currentBet < amount + bettingRound.currentHighBet)
         throw 'Impossible bet'; // Should be impossible at runtime, select menu generation should prevent this from occurring -- can actually happen if select menu is submitted after error
     
     pokerGame.doBet(amount);

@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { MessageActionRow, MessageButton, Collection, CommandInteraction } from 'discord.js';
+import { MessageActionRow, MessageButton } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import { PokerGameType } from '$commands/poker/modules/pokerTypes';
 import { XCommandInteraction } from '$root/core/coreTypes';
+import { getBalance } from '$modules/users';
 
 export const data = new SlashCommandBuilder()
         .setName('poker')
@@ -10,10 +10,30 @@ export const data = new SlashCommandBuilder()
         .addUserOption(option => 
             option.setName('opponent')
                 .setDescription('The user to play against')
-                .setRequired(true));
+                .setRequired(true))
+        .addIntegerOption(option => 
+            option.setName('buyin')
+                .setDescription('Amount of coins to start the bet with')
+                .setRequired(true))
+        .addIntegerOption(option => 
+            option.setName('maxbet')
+                .setDescription('Maximum amount of coins to win/lose')
+                .setRequired(true))
 
 export async function validate(interaction: XCommandInteraction): Promise<boolean> {
     const opponent = interaction.options.getUser('opponent', true);
+    const buyIn = interaction.options.getInteger('buyin', true);
+    const maxBet = interaction.options.getInteger('maxbet', true);
+    
+    if (buyIn < 0)
+        return await interaction.replyError(`Failed: Buy In can't be less than zero`);
+        
+    if (maxBet < 1)
+        return await interaction.replyError(`Failed: Max Bet can't be less than 1`);
+    
+    if (buyIn > maxBet)
+        return await interaction.replyError(`Failed: Buy In can't be more than max bet`);
+    
     if (opponent.id == interaction.user.id)
         return await interaction.replyError(`Failed: Can't start a poker game with yourself`);
     
@@ -28,9 +48,12 @@ export async function validate(interaction: XCommandInteraction): Promise<boolea
 
 export async function execute(interaction: XCommandInteraction) {
     const opponent = interaction.options.getUser('opponent', true);
+    const buyIn = interaction.options.getInteger('buyin', true);
+    const maxBet = interaction.options.getInteger('maxbet', true);
     
-    // TODO: Make buyin a command option, and display how much it is
-    const pokerGame = new PokerGame(PokerGameType.SINGLE, 10, interaction.user, [opponent]);
+    const balances = await Promise.all([getBalance(interaction.user.id), getBalance(opponent.id)]);
+    
+    const pokerGame = new PokerGame(buyIn, maxBet, interaction.user, [opponent], balances);
     
     await pokerGame.saveToDatabase();
     
@@ -46,5 +69,5 @@ export async function execute(interaction: XCommandInteraction) {
                 .setStyle('DANGER')
         );
     
-    await interaction.editReply({ content: `Poker game: Waiting for ${opponent.username}`, components: [row] });
+    await interaction.editReply({ content: `Poker game - Buy in: ${buyIn} - Max bet: ${maxBet}\nWaiting for <@${opponent.id}>`, components: [row] });
 }

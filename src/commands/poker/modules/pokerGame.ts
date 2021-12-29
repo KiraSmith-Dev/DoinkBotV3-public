@@ -1,20 +1,24 @@
 import { random } from '$modules/random';
 import generateHandImage from './generateHandImage';
-import { User, MessageActionRow, MessageButton, MessageSelectMenu, WebhookEditMessageOptions } from 'discord.js';
+import { User, MessageActionRow, MessageButton, MessageSelectMenu, WebhookEditMessageOptions, MessageEmbed } from 'discord.js';
 import { Type, classToPlain, plainToClass } from 'class-transformer';
 import { getDB } from '$modules/database';
 import { DeleteResult, UpdateResult, ObjectId } from 'mongodb';
 import { PokerGamePlayer, PokerGameType } from './pokerTypes';
 import { PokerRound } from './pokerRound';
+import generateStatus from './generateStatus';
+import { store } from '$modules/imageServer';
+import { modifyBalance } from '$modules/users';
 const db = getDB();
 const pokerGames = db.collection('pokerGames');
 
 export class PokerGame {
     _id: string = new ObjectId().toHexString();
     deleted: boolean = false;
+    lastActivity: number = Date.now();
     
     buyInCost: number;
-    maxRaise: number;
+    maxBet: number;
     
     @Type(() => PokerGamePlayer)
     players: PokerGamePlayer[];
@@ -30,22 +34,25 @@ export class PokerGame {
     @Type(() => PokerRound)
     round: PokerRound | null = null;
     
-    constructor(type: PokerGameType | undefined, buyInCost: number | undefined, host: User | undefined, guests: User[] | undefined) {
-        if (!type || !buyInCost || !host || !guests) {
-            this.type = PokerGameType.TOURNAMENT
+    constructor(buyInCost: number | undefined, maxBet: number | undefined, host: User | undefined, guests: User[] | undefined, balances: number[] | undefined) {
+        if (!buyInCost || !maxBet || !host || !guests || !balances) {
+            this.type = PokerGameType.SINGLE
             this.buyInCost = 0;
-            this.maxRaise = 0;
+            this.maxBet = 0;
             this.players = [];
             this.playerIDs = [];
             this.dealerButtonIndex = 0;
             return;
         }
         
-        this.type = type;
-        this.buyInCost = buyInCost;
-        this.maxRaise = Math.round(buyInCost * 1.5);
+        if (balances.length != guests.length + 1)
+            throw 'Number of balances must be the same as the number of players';
         
-        this.players = [new PokerGamePlayer(host, this.buyInCost), ...guests.map(guest => new PokerGamePlayer(guest, this.buyInCost).ready())]; // TODO: Swap ready() to other player, this is for deving only
+        this.type = PokerGameType.SINGLE;
+        this.buyInCost = buyInCost;
+        this.maxBet = maxBet;
+        
+        this.players = [new PokerGamePlayer(host, balances.shift()).ready(), ...guests.map(guest => new PokerGamePlayer(guest, balances.shift()))]; // TODO: Swap ready() to first player, this is for deving only
         this.playerIDs = this.players.map(player => player.id);
         
         this.dealerButtonIndex = random.integer(0, this.players.length - 1);
@@ -109,7 +116,7 @@ export class PokerGame {
             throw 'Tried to start a poker round before poker game started';
         
         ++this.roundNumber;
-        this.round = new PokerRound(this);
+        this.round = new PokerRound(this, this.buyInCost);
         
         // Dealer acts first in 2 player game, but only on the first betting round,
         // otherwise it's the player after the dealer
@@ -127,9 +134,10 @@ export class PokerGame {
             throw 'Tried to do next action before poker game started';
         
         this.getRound().nextAction();
+        this.lastActivity = Date.now();
         
         if (this.getRound().finished)
-            this.#startNewRound();
+            this.endGame();
         
         /*
         if (this.baseGame.type == PokerGameType.SINGLE) {
@@ -190,7 +198,7 @@ export class PokerGame {
     }
     
     endGame() {
-        
+        this.players.forEach(player => modifyBalance(player.id, player.balance - player.originalBalance));
     }
     
     generateStatusMessage(): string {
@@ -279,8 +287,11 @@ export class PokerGame {
         const raiseLabel = bettingRound.anyBets ? { uppercase: 'Raise', lowercase: 'raise' } : { uppercase: 'Bet', lowercase: 'bet' };
         
         const amountOwed = bettingRound.currentHighBet - bettingPlayer.bet;
-        const canRaiseByAmount = currentActionPlayer.gamePlayer.balance - amountOwed;
+        const canRaiseByAmount = Math.min(currentActionPlayer.gamePlayer.balance, this.maxBet - bettingPlayer.bet) - amountOwed;
         const canRaise = canRaiseByAmount > 0;
+        
+        const smoothMode = canRaiseByAmount > 25;
+        const smoothModifier = smoothMode ? (canRaiseByAmount / 25) : 1;
         
         return [
             new MessageActionRow()
@@ -296,6 +307,10 @@ export class PokerGame {
                     new MessageButton()
                         .setCustomId(`poker:fold:${this._id}`)
                         .setLabel('Fold')
+                        .setStyle('DANGER'),
+                    new MessageButton()
+                        .setCustomId(`poker:inactive:${this._id}`)
+                        .setLabel('Inactive Player')
                         .setStyle('DANGER')
                 ),
             new MessageActionRow()
@@ -304,8 +319,8 @@ export class PokerGame {
                         .setCustomId(canRaise ? `poker:raise:${this._id}` : 'disabled')
                         .setDisabled(!canRaise)
                         .setPlaceholder(canRaise ? `${raiseLabel.uppercase} (Selecting a value will ${raiseLabel.lowercase})` : `You're unable to raise`)
-                        // Generate array of numbers 1 - maxRaise, map to option objects 
-                        .addOptions(canRaise ? [...Array(Math.min(this.maxRaise, canRaiseByAmount)).keys()].map(i => i + 1).map(i => ({
+                        // Generate array of numbers 1 - maxRaise, map to option objects
+                        .addOptions(canRaise ? [...Array(smoothMode ? 25 : canRaiseByAmount).keys()].map(i => Math.floor((i + 1) * smoothModifier)).map(i => ({
                             label: `${i}${(canRaise && canRaiseByAmount == i) ? ' (All In)' : ''}`,
                             description: `Select to ${raiseLabel.lowercase}${bettingRound.anyBets ? ' by' : ''} ${i} (${bettingRound.currentHighBet + i} total)`,
                             value: `${i}`
@@ -321,10 +336,17 @@ export class PokerGame {
         if (!this.round)
             throw 'Tried to generate interaction update outside of poker round';
         
-        return { 
-            content: this.generateStatusMessage(),
-            components: this.generateComponents(), 
-            files: this.round.cardRound.communityCards.length ? [ await generateHandImage(this.round.cardRound.communityCards) ] : undefined
+        if (this.round.finished) {
+            await this.deleteFromDatabase();
+            return { content: this.round.endStatus, embeds: [], components: [] };
         }
+        
+        const handCanvas = await generateStatus(this.round);
+        
+        const url = await store(handCanvas);
+        const embed = new MessageEmbed()
+                .setImage(url);
+        
+        return { content: `Poker game - Buy in: ${this.buyInCost} - Max bet: ${this.maxBet}`, embeds: [embed], components: this.generateComponents() };
     }
 }

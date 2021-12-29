@@ -1,9 +1,17 @@
 (async () => {
 	const pathAlias = require('path-alias/register');
+	
+	// For class-transformer
+	require("reflect-metadata");
+	require("es6-shim");
+	
+	// So that subfiles don't complain...
+	await require('$modules/database').connectToDB();
+	
 	const { REST } = require('@discordjs/rest');
 	const { Routes } = require('discord-api-types/v9');
 	const { token } = require('$config');
-	const recursiveReaddir = require("recursive-readdir");
+	const recursiveReaddir = require('recursive-readdir');
 	
 	const clientId = '587375232403111936';
 	

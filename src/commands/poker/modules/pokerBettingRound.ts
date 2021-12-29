@@ -6,18 +6,21 @@ export class PokerBettingPlayer {
     @Exclude()
     roundPlayer: PokerRoundPlayer;
     
-    bet: number = 0;
+    bet: number;
     didActionForThisBet: boolean = false;
     
-    constructor(roundPlayer: PokerRoundPlayer | undefined) {
-        if (!roundPlayer) {
+    constructor(roundPlayer: PokerRoundPlayer | undefined, startBet: number | undefined) {
+        if (!roundPlayer || !startBet) {
             this.roundPlayer = new PokerRoundPlayer(undefined);
             this.id = '0';
+            this.bet = 0;
             return;
         }
         
         this.roundPlayer = roundPlayer;
         this.id = this.roundPlayer.id;
+        this.bet = startBet;
+        this.roundPlayer.gamePlayer.balance -= startBet;
     }
 }
 
@@ -35,13 +38,14 @@ export class PokerBettingRound {
     currentHighBet: number = 0;
     endOfRound: boolean = false;
     
-    constructor(players: PokerRoundPlayer[] | undefined) {
-        if (!players) {
+    constructor(players: PokerRoundPlayer[] | undefined, startBet: number | undefined) {
+        if (!players || !startBet) {
             this.bettingPlayers = [];
             return;
         }
         
-        this.bettingPlayers = players.map(player => new PokerBettingPlayer(player));
+        this.currentHighBet = startBet;
+        this.bettingPlayers = players.map(player => new PokerBettingPlayer(player, startBet));
     }
     
     getPlayer(playerID: string): PokerBettingPlayer {

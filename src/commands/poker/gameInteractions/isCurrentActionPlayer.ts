@@ -26,7 +26,7 @@ class CurrentActionPlayerChecker {
             return true; // Used to dev, doink bot id means any player can play for them
         
         if (pokerGame.round.currentActionPlayer.id !== this.interaction.user.id)
-            return this.#setError(`Failed: Not currently your turn`);
+            return this.#setError(`Failed: Currently not your turn`);
         
         return true;
     }

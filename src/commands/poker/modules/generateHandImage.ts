@@ -7,7 +7,7 @@ const displayCardPadding = 10;
 const displayCardTotalSpace = displayCardWidth + displayCardPadding;
 
 export async function generateHandCanvas(cards: string[]): Promise<Canvas> {
-	const canvas = createCanvas((displayCardTotalSpace * cards.length) - displayCardPadding, displayCardHeight);
+	const canvas = createCanvas(Math.max((displayCardTotalSpace * cards.length) - displayCardPadding, 1), displayCardHeight);
 	const ctx = canvas.getContext('2d');
 	
 	for (let i = 0; i < cards.length; i++) {

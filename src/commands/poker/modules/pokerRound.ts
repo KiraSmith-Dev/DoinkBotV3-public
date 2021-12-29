@@ -22,6 +22,7 @@ export class PokerRound {
     currentActionIndex: number;
     
     finished: boolean = false;
+    endStatus: string = '';
     
     get currentActionPlayer(): PokerRoundPlayer {
         const player = this.roundPlayers[this.currentActionIndex];
@@ -36,12 +37,12 @@ export class PokerRound {
         return this.roundPlayers.length == 2 ? this.baseGame.dealerButtonIndex : (this.baseGame.dealerButtonIndex + 1) % this.roundPlayers.length;
     }
     
-    constructor(baseGame: PokerGame | undefined) {
+    constructor(baseGame: PokerGame | undefined, startBet: number | undefined) {
         if (!baseGame) {
             this.cardRound = new PokerCardRound(undefined);
-            this.bettingRound = new PokerBettingRound(undefined);
+            this.bettingRound = new PokerBettingRound(undefined, undefined);
             this.roundPlayers = [];
-            this.baseGame = new PokerGame(undefined, undefined, undefined, undefined);
+            this.baseGame = new PokerGame(undefined, undefined, undefined, undefined, undefined);
             this.currentActionIndex = 0;
             return;
         }
@@ -49,7 +50,7 @@ export class PokerRound {
         this.roundPlayers = baseGame.players.map(gamePlayer => new PokerRoundPlayer(gamePlayer));
         this.baseGame = baseGame;
         this.cardRound = new PokerCardRound(this.roundPlayers);
-        this.bettingRound = new PokerBettingRound(this.roundPlayers);
+        this.bettingRound = new PokerBettingRound(this.roundPlayers, startBet);
         // In a 2 player game, pre-flop (first round of betting) the dealer gets to act first, otherwise the dealer acts last (+ 1 to dealer index)
         this.currentActionIndex = this.calcDefaultActionIndex();
     }
@@ -117,10 +118,13 @@ export class PokerRound {
         winner.gamePlayer.balance += potBalance;
         
         this.finished = true;
+        this.endStatus = `<@${winner.gamePlayer.id}> won ${potBalance} Doink Coin`;
     }
     
     #endRoundFromShowdown(): void {
         this.cardRound.advanceToEnd();
+        
+        let potTexts: string[] = [];
         
         let pots = this.bettingRound.determinePots();
         for (const pot of pots) {
@@ -130,9 +134,16 @@ export class PokerRound {
             const remainder = pot.amount % winners.length;
             const sharePerWinner = (pot.amount - remainder) / winners.length;
             
+            let winnerNames = winners.map(winner => `<@${winner.hand.roundPlayer.gamePlayer.id}> (${winner.description})`);
+            let lastWinner = winnerNames.pop();
+            let winnerText = winners.length > 1 ? `${winnerNames.join(', ')}, and ${lastWinner}` : lastWinner;
+            
+            potTexts.push(`${winnerText}${winners.length > 1 ? ' each' : ''} won ${sharePerWinner} Doink Coin`);
+            
             winners.forEach((winner, i) => this.baseGame.getPlayer(winner.hand.id).balance += sharePerWinner + (i < remainder ? 1 : 0));
         }
         
         this.finished = true;
+        this.endStatus = potTexts.join('\n');
     }
 }

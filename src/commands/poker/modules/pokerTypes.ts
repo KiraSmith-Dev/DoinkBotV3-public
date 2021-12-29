@@ -1,3 +1,4 @@
+import { getBalance } from '$modules/users';
 import { Exclude } from 'class-transformer';
 import { User } from 'discord.js';
 
@@ -11,18 +12,21 @@ export class PokerGamePlayer {
     username: string;
     isReady = false;
     balance: number;
+    originalBalance: number;
     
     constructor(user: User | undefined, balance: number | undefined) {
         if (!user || !balance) {
             this.id = '0'
             this.username = '';
             this.balance = 0;
+            this.originalBalance = 0;
             return;
         }
         
         this.id = user.id;
         this.username = user.username;
         this.balance = balance;
+        this.originalBalance = balance;
     }
     
     ready(): PokerGamePlayer {

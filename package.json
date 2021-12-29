@@ -4,7 +4,7 @@
   "description": "",
   "main": "./build/bot.js",
   "scripts": {
-    "register": "node ./scripts/scripts/registerSlashCommands",
+    "register": "node ./scripts/registerSlashCommands",
     "build": "node ./scripts/removeBuild && tsc",
     "start": "node .",
     "bstart": "npm run build && npm run start"

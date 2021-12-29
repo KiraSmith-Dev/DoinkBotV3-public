@@ -25,5 +25,5 @@ export async function execute(interaction: XButtonInteraction, gameID: string) {
     
     await pokerGame.deleteFromDatabase();
     
-    return interaction.editReply({ content: `Poker Game: Canceled by ${interaction.user.username}`, components: [] });
+    return interaction.editReply({ content: `Poker Game: Canceled by <@${interaction.user.id}>`, components: [] });
 }
