@@ -1,5 +1,6 @@
 import { Collection, ButtonInteraction, CommandInteraction, SelectMenuInteraction, Interaction, InteractionReplyOptions, MessagePayload } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { embedError, embedOK } from '$modules/embedUtil';
 
 export type XOptions = {
     isUpdate?: boolean;
@@ -69,11 +70,11 @@ export interface XButtonInteraction extends ButtonInteraction, XInteraction {}
 export interface XSelectMenuInteraction extends SelectMenuInteraction, XInteraction {}
 
 function generateSuccessMessage(message: string): InteractionReplyOptions | MessagePayload {
-    return { content: message, ephemeral: true };
+    return { ephemeral: true, embeds: [ embedOK(message) ] };
 }
 
 function generateErrorMessage(message: string): InteractionReplyOptions | MessagePayload {
-    return { content: message, ephemeral: true };
+    return { ephemeral: true, embeds: [ embedError(message) ] };
 }
 
 export function XInteractionFactory(commandName: string, interaction: CommandInteraction | ButtonInteraction | SelectMenuInteraction, xOptions: XOptions): XCommandInteraction | XButtonInteraction | XSelectMenuInteraction {
