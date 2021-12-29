@@ -1,8 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { MessageActionRow, MessageButton } from 'discord.js';
+import { MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
 import { XCommandInteraction } from '$root/core/coreTypes';
 import { getBalance } from '$modules/users';
+import { colors } from '$config';
 
 export const data = new SlashCommandBuilder()
         .setName('poker')
@@ -57,6 +58,11 @@ export async function execute(interaction: XCommandInteraction) {
     
     await pokerGame.saveToDatabase();
     
+    const embed = new MessageEmbed()
+        .setTitle(`Poker game - Buy in: ${buyIn} - Max bet: ${maxBet}`)
+        .setDescription(`Waiting for <@${opponent.id}>`)
+        .setColor(colors.poker);
+    
     const row = new MessageActionRow()
         .addComponents(
             new MessageButton()
@@ -69,5 +75,5 @@ export async function execute(interaction: XCommandInteraction) {
                 .setStyle('DANGER')
         );
     
-    await interaction.editReply({ content: `Poker game - Buy in: ${buyIn} - Max bet: ${maxBet}\nWaiting for <@${opponent.id}>`, components: [row] });
+    await interaction.editReply({ embeds: [embed], components: [row] });
 }

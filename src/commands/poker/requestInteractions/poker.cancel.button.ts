@@ -1,5 +1,7 @@
 import { PokerGame } from '$commands/poker/modules/pokerGame';
+import { colors } from '$config';
 import { XButtonInteraction, XOptions } from '$core/coreTypes';
+import { MessageEmbed } from 'discord.js';
 
 export const options: XOptions = {
     isUpdate: true
@@ -25,5 +27,9 @@ export async function execute(interaction: XButtonInteraction, gameID: string) {
     
     await pokerGame.deleteFromDatabase();
     
-    return interaction.editReply({ content: `Poker Game: Canceled by <@${interaction.user.id}>`, components: [] });
+    const embed = new MessageEmbed()
+        .setTitle(`Poker Game: Canceled by <@${interaction.user.id}>`)
+        .setColor(colors.error);
+    
+    return interaction.editReply({ embeds: [embed], components: [] });
 }

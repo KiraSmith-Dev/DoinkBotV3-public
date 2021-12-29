@@ -9,6 +9,7 @@ import { PokerRound } from './pokerRound';
 import generateStatus from './generateStatus';
 import { store } from '$modules/imageServer';
 import { modifyBalance } from '$modules/users';
+import { colors } from '$config';
 const db = getDB();
 const pokerGames = db.collection('pokerGames');
 
@@ -338,15 +339,21 @@ export class PokerGame {
         
         if (this.round.finished) {
             await this.deleteFromDatabase();
-            return { content: this.round.endStatus, embeds: [], components: [] };
+            
+            const embed = new MessageEmbed()
+                .setTitle(`Poker game - Buy in: ${this.buyInCost} - Max bet: ${this.maxBet}`)
+                .setColor('#1720d1');
+            return { embeds: [embed], components: [] };
         }
         
         const handCanvas = await generateStatus(this.round);
         
         const url = await store(handCanvas);
         const embed = new MessageEmbed()
-                .setImage(url);
+                .setTitle(`Poker game - Buy in: ${this.buyInCost} - Max bet: ${this.maxBet}`)
+                .setImage(url)
+                .setColor(colors.poker);
         
-        return { content: `Poker game - Buy in: ${this.buyInCost} - Max bet: ${this.maxBet}`, embeds: [embed], components: this.generateComponents() };
+        return { embeds: [embed], components: this.generateComponents() };
     }
 }
