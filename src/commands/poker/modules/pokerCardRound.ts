@@ -2,7 +2,7 @@ import { Dealer, cardsToSolveFormat, Hand } from './cards';
 import { Type, Exclude } from 'class-transformer';
 import { PokerRoundPlayer } from './pokerTypes';
 
-type SolvedHand = {
+export type SolvedHand = {
     ownerID: string;
     descr: string;
     folded: boolean;
@@ -117,16 +117,6 @@ export class PokerCardRound {
         
         let winningHands: SolvedHand[] = Hand.winners(solvedHands.filter(hand => !hand.folded));
         
-        let winners: RoundWinner[] = [];
-        
-        for (let i = 0; i < winningHands.length; i++) {
-            const winningHand = winningHands[i];
-            if (!winningHand)
-                continue;
-            
-            winners.push({ hand: this.getHand(winningHand.ownerID), description: winningHand.descr });
-        }
-        
-        return winners;
+        return winningHands.map(winningHand => ({ hand: this.getHand(winningHand.ownerID), description: winningHand.descr }));
     }
 }

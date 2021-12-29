@@ -1,5 +1,5 @@
 import { PokerBettingRound } from './pokerBettingRound';
-import { PokerCardRound } from './pokerCardRound';
+import { PokerCardRound, SolvedHand } from './pokerCardRound';
 import { Type, Exclude } from 'class-transformer';
 import { PokerGamePlayer, PokerGameType, PokerRoundPlayer } from './pokerTypes';
 import { PokerGame } from './pokerGame';
@@ -7,6 +7,7 @@ import { rotate } from '$modules/arrayUtil';
 import { random } from '$modules/random';
 import { InteractionUpdateOptions, MessageActionRow, MessageButton, MessageSelectMenu } from 'discord.js';
 import generateHandImage from './generateHandImage';
+import { Hand } from './cards';
 
 export class PokerRound {
     @Type(() => PokerCardRound)
@@ -131,6 +132,14 @@ export class PokerRound {
             let winners = this.cardRound.determineWinners(pot.ids);
             winners = rotate(winners, random.integer(0, winners.length - 1));
             
+            let winnerIDs = winners.map(winner => winner.hand.roundPlayer.gamePlayer.id);
+            let publicLosingHands: SolvedHand[] = pot.ids.filter(id => !winnerIDs.includes(id) && !this.getPlayer(id).folded).map(id => {
+                let hand = this.cardRound.getHand(id);
+                let solvedHand = Hand.solve(hand.cards.concat(this.cardRound.communityCards))
+                solvedHand.ownerID = hand.id;
+                return solvedHand;
+            });
+            
             const remainder = pot.amount % winners.length;
             const sharePerWinner = (pot.amount - remainder) / winners.length;
             
@@ -138,7 +147,11 @@ export class PokerRound {
             let lastWinner = winnerNames.pop();
             let winnerText = winners.length > 1 ? `${winnerNames.join(', ')}, and ${lastWinner}` : lastWinner;
             
-            potTexts.push(`${winnerText}${winners.length > 1 ? ' each' : ''} won ${sharePerWinner} Doink Coin`);
+            let losingNames = publicLosingHands.map(losingHand => `<@${losingHand.ownerID}> (${losingHand.descr})`);
+            let lastLoser = losingNames.pop();
+            let losingText = publicLosingHands.length > 1 ? `${losingNames.join(', ')}, and ${lastLoser}` : lastLoser;
+            
+            potTexts.push(`${winnerText}${winners.length > 1 ? ' each' : ''} won ${sharePerWinner} Doink Coin\nLosing hands: ${losingText}`);
             
             winners.forEach((winner, i) => this.baseGame.getPlayer(winner.hand.id).balance += sharePerWinner + (i < remainder ? 1 : 0));
         }
