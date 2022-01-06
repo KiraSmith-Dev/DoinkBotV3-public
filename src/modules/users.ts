@@ -1,5 +1,7 @@
 import { getDB } from '$modules/database';
 import { User } from 'discord.js';
+import { Document, FindCursor } from 'mongodb';
+import { DataUser } from './dataTypes';
 const db = getDB();
 const users = db.collection('users');
 const pokerGames = db.collection('pokerGames');
@@ -24,4 +26,10 @@ export async function getBalance(id: string): Promise<number> {
         return 0;
     
     return user.coins;
+}
+
+export async function getAllUsers(): Promise<DataUser[]> {
+    //const allUserDocs = await users.find().toArray() as DataUser[];
+    
+    //return allUserDocs;
 }
