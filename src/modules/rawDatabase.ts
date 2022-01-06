@@ -4,7 +4,9 @@ import { databaseURL, databaseName } from '$config'
 let db: Db | null = null;
 
 export async function connectToRawDB() {
+    console.log('Connecting to raw database...');
     db = (await MongoClient.connect(databaseURL)).db(databaseName);
+    console.log('Raw database connected');
     
     return db;
 }

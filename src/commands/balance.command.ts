@@ -1,8 +1,8 @@
 import { CommandInteraction } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { XOptions } from '$root/core/coreTypes';
-import { getBalance } from '$modules/users';
 import { embedSingle } from '$modules/embedUtil';
+import { UserModel } from '$models/users/users.model';
 
 export const data = new SlashCommandBuilder()
 	.setName('balance')
@@ -14,6 +14,7 @@ export const options: XOptions = {
 }
 
 export async function execute(interaction: CommandInteraction) {
-    let amount = await getBalance(interaction.user.id)
+	const user = await UserModel.findOneOrCreate(interaction.user.id);
+	const amount = user.coins ? user.coins : 0;
 	await interaction.editReply({ embeds: [embedSingle(`You have ${amount} Doink Coin${amount !== 1 ? 's' : ''}`)] });
 }

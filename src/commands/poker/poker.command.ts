@@ -2,8 +2,8 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
 import { XCommandInteraction } from '$root/core/coreTypes';
-import { getBalance } from '$modules/users';
 import { colors } from '$config';
+import { UserModel } from '$models/users/users.model';
 
 export const data = new SlashCommandBuilder()
         .setName('poker')
@@ -52,7 +52,10 @@ export async function execute(interaction: XCommandInteraction) {
     const buyIn = interaction.options.getInteger('buyin', true);
     const maxBet = interaction.options.getInteger('maxbet', true);
     
-    const balances = await Promise.all([getBalance(interaction.user.id), getBalance(opponent.id)]);
+    await UserModel.findOneOrCreate(interaction.user.id)
+    
+    const balances = (await Promise.all([UserModel.findOneOrCreate(interaction.user.id), UserModel.findOneOrCreate(opponent.id)]))
+        .map(user => user.coins ? user.coins : 0);
     
     const pokerGame = new PokerGame(buyIn, maxBet, interaction.user, [opponent], balances);
     

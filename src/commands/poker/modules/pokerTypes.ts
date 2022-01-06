@@ -1,4 +1,3 @@
-import { getBalance } from '$modules/users';
 import { Exclude } from 'class-transformer';
 import { User } from 'discord.js';
 

@@ -8,8 +8,8 @@ import { PokerGamePlayer, PokerGameType } from './pokerTypes';
 import { PokerRound } from './pokerRound';
 import generateStatus from './generateStatus';
 import { store } from '$modules/imageServer';
-import { modifyBalance } from '$modules/users';
 import { colors } from '$config';
+import { UserModel } from '$models/users/users.model';
 const db = getDB();
 const pokerGames = db.collection('pokerGames');
 
@@ -199,7 +199,7 @@ export class PokerGame {
     }
     
     endGame() {
-        this.players.forEach(player => modifyBalance(player.id, player.balance - player.originalBalance));
+        this.players.forEach(async player => (await UserModel.findOneOrCreate(player.id)).forceAddToBalance(player.balance - player.originalBalance));
     }
     
     generateStatusMessage(): string {
