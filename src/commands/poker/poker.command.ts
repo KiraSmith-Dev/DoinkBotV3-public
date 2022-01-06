@@ -19,7 +19,7 @@ export const data = new SlashCommandBuilder()
         .addIntegerOption(option => 
             option.setName('maxbet')
                 .setDescription('Maximum amount of coins to win/lose')
-                .setRequired(true))
+                .setRequired(true));
 
 export async function validate(interaction: XCommandInteraction): Promise<boolean> {
     const opponent = interaction.options.getUser('opponent', true);
@@ -38,10 +38,10 @@ export async function validate(interaction: XCommandInteraction): Promise<boolea
     if (opponent.id == interaction.user.id)
         return await interaction.replyError(`Failed: Can't start a poker game with yourself`);
     
-    if (await PokerGame.anyGameIncludePlayer(interaction.user.id))
+    if (await PokerGame.anyGameIncludesPlayer(interaction.user.id))
         return await interaction.replyError(`Failed: You're already in a poker game`);
     
-    if (await PokerGame.anyGameIncludePlayer(opponent.id))
+    if (await PokerGame.anyGameIncludesPlayer(opponent.id))
         return await interaction.replyError(`Failed: They're already in a poker game`);
     
     return true;

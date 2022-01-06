@@ -41,6 +41,7 @@
     "$modules": "./build/modules",
     "$commands": "./build/commands",
     "$resources": "./resources",
-    "$core": "./build/core"
+    "$core": "./build/core",
+    "$models": "./build/models"
   }
 }

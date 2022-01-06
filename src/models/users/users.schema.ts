@@ -1,22 +1,22 @@
 import { Schema } from 'mongoose';
 import * as statics from './users.statics';
 import * as methods from './users.methods';
+import setFunctions from '$models/global/global.setFunctions';
 
 const UserSchema = new Schema({
-    firstName: String,
-    lastName: String,
-    age: Number,
-    dateOfEntry: {
-        type: Date,
-        default: new Date()
+    uid: {
+        type: String,
+        required: true
     },
-    lastUpdated: {
-        type: Date,
-        default: new Date()
-    }
+    username: String,
+    coins: Number,
+    avatarURL: String,
+    lastGoldGive: String,
+    lastWeeklyClaim: String,
+    lastStreakClaim: String,
+    streak: Number
 });
 
-Object.assign(UserSchema.statics, statics);
-Object.assign(UserSchema.methods, methods);
+setFunctions(UserSchema, statics, methods);
 
 export default UserSchema;

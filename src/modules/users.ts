@@ -1,4 +1,4 @@
-import { getDB } from '$modules/database';
+import { getDB } from '$modules/rawDatabase';
 import { User } from 'discord.js';
 import { Document, FindCursor } from 'mongodb';
 import { DataUser } from './dataTypes';

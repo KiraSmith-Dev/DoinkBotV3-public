@@ -13,12 +13,12 @@ import InteractionHandler, { ValidatorType } from '$core/handler';
 
 import { loadCommands } from '$core/loadCommands';
 import { connectToDB } from '$modules/database';
+import { connectToRawDB } from '$modules/rawDatabase';
 import * as imageServer from '$modules/imageServer';
 
 (async () => {
-    await connectToDB(); // Connect to DB first to be avaliable for commands
-    await imageServer.listen();
-    await loadCommands(); // Load commands before logging into discord to ensure requests are possible to fulfill
+    await Promise.all([connectToDB, connectToRawDB]); // Connect to DB first to be avaliable for commands
+    await Promise.all([imageServer.listen, loadCommands]); // Load commands before logging into discord to ensure requests are possible to fulfill
     
     const client = new Discord.Client({ intents: [
         Discord.Intents.FLAGS.GUILDS, 

@@ -1,27 +1,19 @@
-import { Document, Model } from 'mongoose';
+import { GlobalModel, GlobalDocument } from '$models/global/global.types';
+
 export interface IUser {
-    firstName: string;
-    lastName: string;
-    age: number;
-    dateOfEntry?: Date;
-    lastUpdated?: Date;
+    uid: string;
+    username?: string;
+    coins?: number;
+    avatarURL?: string;
+    lastGoldGive?: string;
+    lastWeeklyClaim?: string;
+    lastStreakClaim?: string;
+    streak?: number;
 }
 
-export interface IUserDocument extends IUser, Document {
-    setLastUpdated: (this: IUserDocument) => Promise<void>;
-    sameLastName: (this: IUserDocument) => Promise<Document[]>;
+export interface IUserDocument extends IUser, GlobalDocument {
+    forceAddToBalance: (this: IUserDocument, amount: number) => Promise<IUserDocument>;
+    addToBalance: (this: IUserDocument, amount: number) => Promise<IUserDocument>;
 }
 
-export interface IUserModel extends Model<IUserDocument> {
-    findOneOrCreate: (
-        {
-        firstName,
-        lastName,
-        age,
-        }: { firstName: string; lastName: string; age: number }
-    ) => Promise<IUserDocument>;
-    findByAge: (
-        min?: number,
-        max?: number
-    ) => Promise<IUserDocument[]>;
-}
+export interface IUserModel extends GlobalModel<IUserDocument> {}

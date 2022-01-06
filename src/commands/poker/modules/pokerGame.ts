@@ -2,7 +2,7 @@ import { random } from '$modules/random';
 import generateHandImage from './generateHandImage';
 import { User, MessageActionRow, MessageButton, MessageSelectMenu, WebhookEditMessageOptions, MessageEmbed } from 'discord.js';
 import { Type, classToPlain, plainToClass } from 'class-transformer';
-import { getDB } from '$modules/database';
+import { getDB } from '$modules/rawDatabase';
 import { DeleteResult, UpdateResult, ObjectId } from 'mongodb';
 import { PokerGamePlayer, PokerGameType } from './pokerTypes';
 import { PokerRound } from './pokerRound';
@@ -255,7 +255,7 @@ export class PokerGame {
         if (!foundGame)
             return null;
         
-        foundGame._id = (foundGame._id as ObjectId).toHexString();
+        //foundGame._id = (foundGame._id as ObjectId).toHexString();
         
         let pokerGame = plainToClass(PokerGame, foundGame);
         
@@ -270,7 +270,7 @@ export class PokerGame {
         return pokerGame;
     }
     
-    static async anyGameIncludePlayer(id: string): Promise<boolean> {
+    static async anyGameIncludesPlayer(id: string): Promise<boolean> {
         return (await pokerGames.findOne({ playerIDs: id })) ? true : false;
     }
     

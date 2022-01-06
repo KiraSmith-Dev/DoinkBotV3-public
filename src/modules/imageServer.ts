@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDB } from '$modules/database';
+import { getDB } from '$modules/rawDatabase';
 import * as config from '$config';
 import { Binary, ObjectId } from 'bson';
 import { useTryAsync } from 'no-try';
