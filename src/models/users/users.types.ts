@@ -16,4 +16,6 @@ export interface IUserDocument extends IUser, GlobalDocument {
     addToBalance: (this: IUserDocument, amount: number) => Promise<IUserDocument>;
 }
 
-export interface IUserModel extends GlobalModel<IUserDocument> {}
+export interface IUserModel extends GlobalModel<IUserDocument> {
+    findOneOrCreate: (uid: string) => Promise<IUserDocument>;
+}
