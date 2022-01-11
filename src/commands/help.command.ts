@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { XCommandInteraction, XOptions } from '$root/core/coreTypes';
+import { XCommandInteraction, XOptions } from '$core/coreTypes';
 import pathAlias from 'path-alias';
 import recursiveReaddir from 'recursive-readdir';
 

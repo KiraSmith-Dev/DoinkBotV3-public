@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
-import { XCommandInteraction } from '$root/core/coreTypes';
+import { XCommandInteraction } from '$core/coreTypes';
 import { colors } from '$config';
 import { UserModel } from '$models/users/users.model';
 

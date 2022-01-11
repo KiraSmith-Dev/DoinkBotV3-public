@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { XCommandInteraction, XOptions } from '$root/core/coreTypes';
+import { XCommandInteraction, XOptions } from '$core/coreTypes';
 import { embedSingle } from '$modules/embedUtil';
 import { UserModel } from '$models/users/users.model';
 import { genCoinLabel } from '$modules/genCoinLabel';
