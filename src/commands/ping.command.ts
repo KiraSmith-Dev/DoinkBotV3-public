@@ -1,6 +1,5 @@
-import { CommandInteraction, MessageActionRow, MessageButton } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { XOptions } from '$root/core/coreTypes';
+import { XCommandInteraction, XOptions } from '$root/core/coreTypes';
 
 export const data = new SlashCommandBuilder()
 	.setName('ping')
@@ -11,6 +10,6 @@ export const options: XOptions = {
 	skipValidate: true
 }
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: XCommandInteraction) {
 	await interaction.editReply({ content: 'Pong!' });
 }
