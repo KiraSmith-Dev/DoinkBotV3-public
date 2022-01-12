@@ -6,7 +6,10 @@
 	require("es6-shim");
 	
 	// So that subfiles don't complain...
-	await require('$modules/database').connectToDB();
+	await Promise.all([
+		require('$modules/database').connectToDB(), 
+		require('$modules/rawDatabase').connectToRawDB()
+	]);
 	
 	const { REST } = require('@discordjs/rest');
 	const { Routes } = require('discord-api-types/v9');

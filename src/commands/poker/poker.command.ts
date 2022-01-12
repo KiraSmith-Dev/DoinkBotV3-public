@@ -27,22 +27,22 @@ export async function validate(interaction: XCommandInteraction): Promise<boolea
     const maxBet = interaction.options.getInteger('maxbet', true);
     
     if (buyIn < 0)
-        return await interaction.replyError(`Failed: Buy In can't be less than zero`);
+        return await interaction.replyError(`Buy In can't be less than zero`);
         
     if (maxBet < 1)
-        return await interaction.replyError(`Failed: Max Bet can't be less than 1`);
+        return await interaction.replyError(`Max Bet can't be less than 1`);
     
     if (buyIn > maxBet)
-        return await interaction.replyError(`Failed: Buy In can't be more than max bet`);
+        return await interaction.replyError(`Buy In can't be more than max bet`);
     
     if (opponent.id == interaction.user.id)
-        return await interaction.replyError(`Failed: Can't start a poker game with yourself`);
+        return await interaction.replyError(`Can't start a poker game with yourself`);
     
     if (await PokerGame.anyGameIncludesPlayer(interaction.user.id))
-        return await interaction.replyError(`Failed: You're already in a poker game`);
+        return await interaction.replyError(`You're already in a poker game`);
     
     if (await PokerGame.anyGameIncludesPlayer(opponent.id))
-        return await interaction.replyError(`Failed: They're already in a poker game`);
+        return await interaction.replyError(`They're already in a poker game`);
     
     return true;
 }

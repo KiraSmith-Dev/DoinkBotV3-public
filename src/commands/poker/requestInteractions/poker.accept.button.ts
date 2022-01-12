@@ -9,10 +9,10 @@ export async function validate(interaction: XButtonInteraction, gameID: string):
     const pokerGame = await PokerGame.getFromDatabase(gameID);
     
     if (!pokerGame)
-        return await interaction.replyError('Failed: Poker game not found. Did it expire?');
+        return await interaction.replyError('Poker game not found. Did it expire?');
     
     if (!pokerGame.includesPlayer(interaction.user.id))
-        return await interaction.replyError(`Failed: You're not a part of this game`);
+        return await interaction.replyError(`You're not a part of this game`);
     
     let player = pokerGame.getPlayer(interaction.user.id);
     

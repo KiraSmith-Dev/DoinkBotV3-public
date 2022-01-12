@@ -199,7 +199,7 @@ export class PokerGame {
     }
     
     endGame() {
-        this.players.forEach(async player => (await UserModel.findOneOrCreate(player.id)).forceAddToBalance(player.balance - player.originalBalance));
+        this.players.forEach(async player => (await UserModel.findOneOrCreate(player.id)).addToBalance(player.balance - player.originalBalance));
     }
     
     generateStatusMessage(): string {
