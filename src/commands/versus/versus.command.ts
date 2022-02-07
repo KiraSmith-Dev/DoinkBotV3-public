@@ -21,7 +21,7 @@ export const data = new SlashCommandBuilder()
 
 export const options: XOptions = {
 	ephemeral: false
-}
+};
 
 export async function validate(interaction: XCommandInteraction): Promise<boolean> {
     const amount = interaction.options.getInteger('amount', true);

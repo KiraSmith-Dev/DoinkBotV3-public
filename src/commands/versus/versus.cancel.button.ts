@@ -5,7 +5,7 @@ import { genCoinLabel } from '$modules/genCoinLabel';
 
 export const options: XOptions = {
     isUpdate: true
-}
+};
 
 export async function validate(interaction: XButtonInteraction, gameID: string): Promise<boolean> {
     const versusGame = await VersusModel.findOne({ _id: gameID });

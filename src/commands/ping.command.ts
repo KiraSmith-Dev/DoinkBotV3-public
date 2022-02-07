@@ -8,7 +8,7 @@ export const data = new SlashCommandBuilder()
 export const options: XOptions = {
 	ephemeral: true,
 	skipValidate: true
-}
+};
 
 export async function execute(interaction: XCommandInteraction) {
 	await interaction.editReply({ content: 'Pong!' });

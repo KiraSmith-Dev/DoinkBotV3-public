@@ -11,7 +11,7 @@ export const data = new SlashCommandBuilder()
 export const options: XOptions = {
 	ephemeral: true,
 	skipValidate: true
-}
+};
 
 export async function execute(interaction: XCommandInteraction) {
 	const user = await UserModel.findOneOrCreate(interaction.user.id);
