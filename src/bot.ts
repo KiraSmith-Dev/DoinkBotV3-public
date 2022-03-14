@@ -7,9 +7,6 @@ import 'es6-shim';
 import * as Discord from 'discord.js';
 import { token } from '$config';
 import InteractionHandler, { ValidatorType } from '$core/handler';
-//import handleCommands from '$core/handleCommands';
-//import handleButtons from '$core/handleButtons';
-//import handleSelectMenus from '$core/handleSelectMenus';
 
 import { loadCommands } from '$core/loadCommands';
 import { connectToDB } from '$modules/database';
