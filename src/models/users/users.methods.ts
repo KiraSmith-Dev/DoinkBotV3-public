@@ -32,11 +32,17 @@ export async function validateCoins(this: IUserDocument, interaction: XCommandIn
     if (!this.coins)
         this.coins = 0;
     
+    if (amount % 1 !== 0)
+        return await interaction.replyError(`You can't spend a fraction of a Doink Coin`);
+    
+    if (amount < 1)
+        return await interaction.replyError(`You can't spend less than 1 Doink Coin`);
+    
     if (this.coins < amount)
-        return await interaction.replyError(`${userText} can't afford to make that bet`);
+        return await interaction.replyError(`${userText} can't afford to spend that much`);
     
     if (await this.isInPokerGame())
-        return await interaction.replyError(`${userText} can't versus while in a poker game`);
+        return await interaction.replyError(`${userText} can't spend coins while in a poker game`);
     
     return true;
 }
