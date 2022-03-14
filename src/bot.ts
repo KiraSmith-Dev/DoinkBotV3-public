@@ -15,7 +15,7 @@ import { loadCommands } from '$core/loadCommands';
 import { connectToDB } from '$modules/database';
 import { connectToRawDB } from '$modules/rawDatabase';
 import * as imageServer from '$modules/imageServer';
-import { handleReactions } from '$handlers/handleReactions';
+import { handleReactions } from '$handlers/handleReaction/handleReactions';
 
 (async () => {
     await Promise.all([connectToDB(), connectToRawDB()]); // Connect to DB first to be avaliable for commands
