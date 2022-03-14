@@ -40,6 +40,8 @@ export async function execute(interaction: XCommandInteraction) {
     const hostUser = await UserModel.findOneOrCreate(interaction.user.id);
     const targetUser = await UserModel.findOneOrCreate(targetDiscordUser.id);
     
+    hostUser.username = interaction.user.username;
+    targetUser.username = targetDiscordUser.username;
     await hostUser.addToBalance(amount * -1);
     await targetUser.addToBalance(amount);
     

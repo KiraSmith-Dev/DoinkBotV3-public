@@ -79,6 +79,7 @@ export async function execute(interaction: XCommandInteraction) {
     if (user && user.lastWeeklyClaim == currentWeek)
         return await interaction.replyError(`You've already claimed your weekly Doink Coins\n${formatTimeToNextReset(local)}`);
     
+    user.username = interaction.user.username;
     await user.addToBalance(weeklyAmount);
 	
     const embedOut = embed(`Success`, { name: `Claimed ${weeklyAmount} Doink Coin`, value: `You now have ${genCoinLabel(user.coins ? user.coins : 0)}` });
