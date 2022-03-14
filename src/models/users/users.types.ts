@@ -17,6 +17,7 @@ export interface IUserDocument extends IUser, GlobalDocument {
     /*forceAddToBalance: (this: IUserDocument, amount: number) => Promise<IUserDocument>;*/
     addToBalance: (this: IUserDocument, amount: number) => Promise<IUserDocument>;
     validateCoins: (this: IUserDocument, interaction: XCommandInteraction | XButtonInteraction | XSelectMenuInteraction, amount: number, userText: string) => Promise<boolean>;
+    canGiveGold(this: IUserDocument): Promise<boolean>;
 }
 
 export interface IUserModel extends Omit<GlobalModel<IUserDocument>, 'findOneOrCreate'> {

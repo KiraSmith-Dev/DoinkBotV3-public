@@ -4,6 +4,7 @@ import { IUserDocument, IUserModel } from './users.types';
 // Legacy imports to interact with poker
 import { getDB } from '$modules/rawDatabase';
 import { XButtonInteraction, XCommandInteraction, XSelectMenuInteraction } from '$core/coreTypes';
+import { DateTime } from 'luxon';
 const db = getDB();
 const pokerGames = db.collection('pokerGames');
 
@@ -43,6 +44,22 @@ export async function validateCoins(this: IUserDocument, interaction: XCommandIn
     
     if (await this.isInPokerGame())
         return await interaction.replyError(`${userText} can't spend coins while in a poker game`);
+    
+    return true;
+}
+
+export async function canGiveGold(this: IUserDocument): Promise<boolean> {       
+    const local = DateTime.local();
+    
+    if (!this.lastGoldGive)
+        return true;
+    
+    let [ year, month ] = this.lastGoldGive.split('-');
+    if (!year || !month)
+        return false;
+    
+    if (year == local.year.toString() && month == local.month.toString())
+        return false;
     
     return true;
 }
