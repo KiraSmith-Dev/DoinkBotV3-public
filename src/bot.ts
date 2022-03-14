@@ -15,6 +15,7 @@ import { loadCommands } from '$core/loadCommands';
 import { connectToDB } from '$modules/database';
 import { connectToRawDB } from '$modules/rawDatabase';
 import * as imageServer from '$modules/imageServer';
+import { handleReactions } from '$handlers/handleReactions';
 
 (async () => {
     await Promise.all([connectToDB(), connectToRawDB()]); // Connect to DB first to be avaliable for commands
@@ -38,6 +39,9 @@ import * as imageServer from '$modules/imageServer';
         const handler = new InteractionHandler(type);
         client.on('interactionCreate', (interaction) => { handler.handle(interaction) });
     });
+    
+    client.on('messageReactionAdd', handleReactions);
+    client.on('messageReactionRemove', handleReactions);
 
     client.login(token);
 })();

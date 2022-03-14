@@ -45,6 +45,7 @@
     "$commands": "./build/commands",
     "$resources": "./resources",
     "$core": "./build/core",
+    "$handlers": "./build/handlers",
     "$models": "./build/models"
   }
 }
