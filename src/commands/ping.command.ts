@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { XCommandInteraction, XOptions } from '$core/coreTypes';
+import { embedOK } from '$modules/embedUtil';
 
 export const data = new SlashCommandBuilder()
 	.setName('ping')
@@ -11,5 +12,6 @@ export const options: XOptions = {
 };
 
 export async function execute(interaction: XCommandInteraction) {
-	await interaction.editReply({ content: 'Pong!' });
+	const embed = embedOK(`Pong!`);
+	await interaction.editReply({ embeds: [embed], components: [] });
 }
