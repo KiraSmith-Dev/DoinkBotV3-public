@@ -6,7 +6,9 @@ export const databaseName = 'HeartBotDev';
 
 export const colors = {
     success: 0x2dfc9f,
-    error: 0xfc2d2d
+    error: 0xfc2d2d,
+    neutral: 0x8100ff,
+    poker: 0x1720d1
 }
 
 export const weeklyAmount = 30;
