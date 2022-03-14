@@ -15,7 +15,6 @@ import { loadCommands } from '$core/loadCommands';
 import { connectToDB } from '$modules/database';
 import { connectToRawDB } from '$modules/rawDatabase';
 import * as imageServer from '$modules/imageServer';
-import { handleReactions } from '$handlers/handleReaction/handleReactions';
 
 (async () => {
     await Promise.all([connectToDB(), connectToRawDB()]); // Connect to DB first to be avaliable for commands
@@ -39,6 +38,8 @@ import { handleReactions } from '$handlers/handleReaction/handleReactions';
         const handler = new InteractionHandler(type);
         client.on('interactionCreate', (interaction) => { handler.handle(interaction) });
     });
+    
+    const handleReactions: (reaction: Discord.MessageReaction | Discord.PartialMessageReaction) => Promise<void> = require('$handlers/handleReaction/handleReactions').handleReactions;
     
     client.on('messageReactionAdd', handleReactions);
     client.on('messageReactionRemove', handleReactions);

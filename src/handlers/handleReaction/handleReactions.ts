@@ -33,15 +33,27 @@ export async function handleReactions(_reaction: MessageReaction | PartialMessag
     let totalHearts = countWithoutDuplicates(reactions, 'heart', author.id);
     let totalDownvotes = countWithoutDuplicates(reactions, 'downvote', author.id);
     
-    let msg = await MessageModel.findOneOrCreate({ uid: reaction.message.id });
+    let msg = await MessageModel.findOne({ uid: reaction.message.id });
     let totalGold = msg ? msg.goldGivers ? msg.goldGivers.length : 0 : 0;
     
     const user = await UserModel.findOneOrCreate(author.id);
     user.username = author.username;
     
+    if (!msg)
+        msg = await MessageModel.create({
+            uid: reaction.message.id, 
+            author: author.id, 
+            channel: reaction.message.channel.id, 
+            timestamp: reaction.message.createdTimestamp, 
+            reactions: reactions, 
+            totalHearts: totalHearts, 
+            totalDownvotes: totalDownvotes, 
+            totalGold: totalGold,
+            goldGivers: []
+        });
+    
     msg.author = author.id;
     msg.channel = reaction.message.channel.id;
-    msg.uid = reaction.message.id;
     msg.timestamp = reaction.message.createdTimestamp;
     msg.reactions = reactions;
     msg.totalHearts = totalHearts;
