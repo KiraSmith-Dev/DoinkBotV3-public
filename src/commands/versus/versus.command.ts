@@ -2,7 +2,6 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { XCommandInteraction, XOptions } from '$core/coreTypes';
 import { embedSingle } from '$modules/embedUtil';
 import { UserModel } from '$models/users/users.model';
-import { IUserDocument } from '$models/users/users.types';
 import { genCoinLabel } from '$modules/genCoinLabel';
 import { VersusModel } from '$models/versus/versus.model';
 import { MessageActionRow, MessageButton } from 'discord.js';
@@ -29,12 +28,6 @@ export async function validate(interaction: XCommandInteraction): Promise<boolea
     
     if (interaction.user.id === targetDiscordUser.id)
         return await interaction.replyError(`You can't versus yourself`);
-    
-    if (amount < 1)
-        return await interaction.replyError(`You can't bet less than 1 Doink Coin`);
-    
-    if (amount % 1 !== 0)
-        return await interaction.replyError(`You can't bet a fraction of a Doink Coin`);
     
     const hostUser = await UserModel.findOneOrCreate(interaction.user.id);
     const targetUser = await UserModel.findOneOrCreate(targetDiscordUser.id);
