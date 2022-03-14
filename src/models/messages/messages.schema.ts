@@ -51,6 +51,6 @@ const MessageSchema = new Schema({
     invalid: Boolean
 });
 
-//setFunctions(UserSchema, undefined, methods);
+setFunctions(MessageSchema, false, false);
 
 export default MessageSchema;
