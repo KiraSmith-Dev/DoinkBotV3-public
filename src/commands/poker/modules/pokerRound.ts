@@ -8,6 +8,7 @@ import { random } from '$modules/random';
 import { InteractionUpdateOptions, MessageActionRow, MessageButton, MessageSelectMenu } from 'discord.js';
 import generateHandImage from './generateHandImage';
 import { Hand } from './cards';
+import { genCoinLabel } from '$modules/genCoinLabel';
 
 export class PokerRound {
     @Type(() => PokerCardRound)
@@ -39,9 +40,9 @@ export class PokerRound {
     }
     
     constructor(baseGame: PokerGame | undefined, startBet: number | undefined) {
-        if (!baseGame) {
+        if (baseGame == undefined) {
             this.cardRound = new PokerCardRound(undefined);
-            this.bettingRound = new PokerBettingRound(undefined, undefined);
+            this.bettingRound = new PokerBettingRound(undefined, undefined, undefined);
             this.roundPlayers = [];
             this.baseGame = new PokerGame(undefined, undefined, undefined, undefined, undefined);
             this.currentActionIndex = 0;
@@ -51,7 +52,7 @@ export class PokerRound {
         this.roundPlayers = baseGame.players.map(gamePlayer => new PokerRoundPlayer(gamePlayer));
         this.baseGame = baseGame;
         this.cardRound = new PokerCardRound(this.roundPlayers);
-        this.bettingRound = new PokerBettingRound(this.roundPlayers, startBet);
+        this.bettingRound = new PokerBettingRound(this.roundPlayers, startBet, baseGame.maxBet);
         // In a 2 player game, pre-flop (first round of betting) the dealer gets to act first, otherwise the dealer acts last (+ 1 to dealer index)
         this.currentActionIndex = this.calcDefaultActionIndex();
     }
@@ -89,14 +90,14 @@ export class PokerRound {
         }
         
         // if nobody can act, advance to the next action
-        const playersWhoCanAct = this.bettingRound.bettingPlayers.filter(player => !player.roundPlayer.folded && player.roundPlayer.gamePlayer.balance > 0);
+        const playersWhoCanAct = this.bettingRound.bettingPlayers.filter(player => !player.roundPlayer.folded && player.roundPlayer.gamePlayer.balance > 0 && player.bet < this.baseGame.maxBet);
         if (playersWhoCanAct.length == 0 || (playersWhoCanAct.length == 1  && playersWhoCanAct[0]?.bet === this.bettingRound.currentHighBet)) {
             this.bettingRound.endOfRound = true;
             this.nextAction();
         }
         
         // Make currentActionIndex/Player === the next player in order that can act - we're promised that at least 2 of these can act, so it won't infinite loop
-        while (this.currentActionPlayer.folded || this.currentActionPlayer.gamePlayer.balance <= 0) {
+        while (this.currentActionPlayer.folded || this.currentActionPlayer.gamePlayer.balance <= 0 || this.bettingRound.getPlayer(this.currentActionPlayer.id).bet >= this.baseGame.maxBet) {
             this.currentActionIndex = (this.currentActionIndex + 1) % this.roundPlayers.length;
         }
     }
@@ -133,30 +134,28 @@ export class PokerRound {
             winners = rotate(winners, random.integer(0, winners.length - 1));
             
             let winnerIDs = winners.map(winner => winner.hand.roundPlayer.gamePlayer.id);
-            let publicLosingHands: SolvedHand[] = pot.ids.filter(id => !winnerIDs.includes(id) && !this.getPlayer(id).folded).map(id => {
+            let publicLosingHands: { solved: SolvedHand, cards: string[] }[] = pot.ids.filter(id => !winnerIDs.includes(id) && !this.getPlayer(id).folded).map(id => {
                 let hand = this.cardRound.getHand(id);
                 let solvedHand = Hand.solve(hand.cards.concat(this.cardRound.communityCards))
                 solvedHand.ownerID = hand.id;
-                return solvedHand;
+                return { solved: solvedHand, cards: hand.cards };
             });
             
             const remainder = pot.amount % winners.length;
             const sharePerWinner = (pot.amount - remainder) / winners.length;
             
-            let winnerNames = winners.map(winner => `<@${winner.hand.roundPlayer.gamePlayer.id}> (${winner.description})`);
-            let lastWinner = winnerNames.pop();
-            let winnerText = winners.length > 1 ? `${winnerNames.join(', ')}, and ${lastWinner}` : lastWinner;
+            let winnerNames = winners.map(winner => `<@${winner.hand.roundPlayer.gamePlayer.id}> (${winner.hand.cards.join(', ')} / ${winner.description})`);
+            let winnerText = winnerNames.join('\n');
             
-            let losingNames = publicLosingHands.map(losingHand => `<@${losingHand.ownerID}> (${losingHand.descr})`);
-            let lastLoser = losingNames.pop();
-            let losingText = publicLosingHands.length > 1 ? `${losingNames.join(', ')}, and ${lastLoser}` : lastLoser;
+            let losingNames = publicLosingHands.map(losingHand => `<@${losingHand.solved.ownerID}> (${losingHand.cards.join(', ')} / ${losingHand.solved.descr})`);
+            let losingText = losingNames.join('\n');
             
-            potTexts.push(`${winnerText}${winners.length > 1 ? ' each' : ''} won ${sharePerWinner} Doink Coin\nLosing hands: ${losingText}`);
+            potTexts.push(`${genCoinLabel(sharePerWinner)} go to the Winner${winners.length > 1 ? 's' : ''}:\n${winnerText}\n\nLosing hands:\n${losingText}`);
             
             winners.forEach((winner, i) => this.baseGame.getPlayer(winner.hand.id).balance += sharePerWinner + (i < remainder ? 1 : 0));
         }
         
         this.finished = true;
-        this.endStatus = potTexts.join('\n');
+        this.endStatus = potTexts.join('\n\n');
     }
 }

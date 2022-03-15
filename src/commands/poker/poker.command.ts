@@ -44,6 +44,21 @@ export async function validate(interaction: XCommandInteraction): Promise<boolea
     if (await PokerGame.anyGameIncludesPlayer(opponent.id))
         return await interaction.replyError(`They're already in a poker game`);
     
+    const user = await UserModel.findOneOrCreate(interaction.user.id);
+    const oppUser = await UserModel.findOneOrCreate(opponent.id);
+    
+    let res = await user.validateCoins(interaction, buyIn, 'You');
+    if (!res) return res;
+    
+    res = await user.validateCoins(interaction, maxBet, 'You');
+    if (!res) return res;
+    
+    res = await oppUser.validateCoins(interaction, buyIn, `<@$${oppUser.uid}>`);
+    if (!res) return res;
+    
+    res = await oppUser.validateCoins(interaction, maxBet, `<@$${oppUser.uid}>`);
+    if (!res) return res;
+    
     return true;
 }
 
@@ -51,8 +66,6 @@ export async function execute(interaction: XCommandInteraction) {
     const opponent = interaction.options.getUser('opponent', true);
     const buyIn = interaction.options.getInteger('buyin', true);
     const maxBet = interaction.options.getInteger('maxbet', true);
-    
-    await UserModel.findOneOrCreate(interaction.user.id)
     
     const balances = (await Promise.all([UserModel.findOneOrCreate(interaction.user.id), UserModel.findOneOrCreate(opponent.id)]))
         .map(user => user.coins ? user.coins : 0);

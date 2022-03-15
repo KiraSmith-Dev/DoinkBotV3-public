@@ -15,7 +15,7 @@ class PokerCardPlayer {
     cards: string[] = [];
 
     constructor(roundPlayer: PokerRoundPlayer | undefined) {
-        if (!roundPlayer) {
+        if (roundPlayer == undefined) {
             this.roundPlayer = new PokerRoundPlayer(undefined);
             this.id = '0';
             return;
@@ -43,7 +43,7 @@ export class PokerCardRound {
     finished: boolean = false;
     
     constructor(players: PokerRoundPlayer[] | undefined) {
-        if (!players) {
+        if (players == undefined) {
             this.cardPlayers = [];
             return;
         }

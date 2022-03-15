@@ -22,7 +22,7 @@ export async function forceAddToBalance(this: IUserDocument, amount: number): Pr
 
 export async function addToBalance(this: IUserDocument, amount: number): Promise<IUserDocument> {
     if (await this.isInPokerGame())
-        throw 'Tried to modifiy balance while in a poker game';
+        throw 'Tried to modify balance while in a poker game';
     
     this.coins ? this.coins += amount : this.coins = amount;
 

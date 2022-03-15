@@ -14,7 +14,7 @@ export class PokerGamePlayer {
     originalBalance: number;
     
     constructor(user: User | undefined, balance: number | undefined) {
-        if (!user || !balance) {
+        if (user == undefined || balance == undefined) {
             this.id = '0'
             this.username = '';
             this.balance = 0;
@@ -41,7 +41,7 @@ export class PokerRoundPlayer {
     folded: boolean = false;
     
     constructor(gamePlayer: PokerGamePlayer | undefined) {
-        if (!gamePlayer) {
+        if (gamePlayer == undefined) {
             this.gamePlayer = new PokerGamePlayer(undefined, undefined);
             this.id = '0';
             return;

@@ -36,7 +36,7 @@ export class PokerGame {
     round: PokerRound | null = null;
     
     constructor(buyInCost: number | undefined, maxBet: number | undefined, host: User | undefined, guests: User[] | undefined, balances: number[] | undefined) {
-        if (!buyInCost || !maxBet || !host || !guests || !balances) {
+        if (buyInCost == undefined || maxBet == undefined || host == undefined || guests == undefined || balances == undefined) {
             this.type = PokerGameType.SINGLE
             this.buyInCost = 0;
             this.maxBet = 0;
@@ -198,7 +198,8 @@ export class PokerGame {
         return this.round.cardRound.getHand(this.round.currentActionPlayer.id).cards;
     }
     
-    endGame() {
+    async endGame() {
+        await this.deleteFromDatabase();
         this.players.forEach(async player => (await UserModel.findOneOrCreate(player.id)).addToBalance(player.balance - player.originalBalance));
     }
     
@@ -255,7 +256,7 @@ export class PokerGame {
         if (!foundGame)
             return null;
         
-        //foundGame._id = (foundGame._id as ObjectId).toHexString();
+        (foundGame._id as unknown as string) = (foundGame._id as ObjectId).toHexString();
         
         let pokerGame = plainToClass(PokerGame, foundGame);
         
@@ -324,7 +325,7 @@ export class PokerGame {
                         .addOptions(canRaise ? [...Array(smoothMode ? 25 : canRaiseByAmount).keys()].map(i => Math.floor((i + 1) * smoothModifier)).map(i => ({
                             label: `${i}${(canRaise && canRaiseByAmount == i) ? ' (All In)' : ''}`,
                             description: `Select to ${raiseLabel.lowercase}${bettingRound.anyBets ? ' by' : ''} ${i} (${bettingRound.currentHighBet + i} total)`,
-                            value: `${i}`
+                            value: `${amountOwed + i}`
                         })) : [{
                             label: '0',
                             value: '0'
@@ -340,9 +341,14 @@ export class PokerGame {
         if (this.round.finished) {
             await this.deleteFromDatabase();
             
+            const handCanvas = await generateHandImage(this.round.cardRound.communityCards);
+            const url = await store(handCanvas);
+            
             const embed = new MessageEmbed()
                 .setTitle(`Poker game - Buy in: ${this.buyInCost} - Max bet: ${this.maxBet}`)
-                .setColor('#1720d1');
+                .setDescription(this.round.endStatus)
+                .setImage(url)
+                .setColor(colors.poker);
             return { embeds: [embed], components: [] };
         }
         

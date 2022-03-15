@@ -10,7 +10,7 @@ export class PokerBettingPlayer {
     didActionForThisBet: boolean = false;
     
     constructor(roundPlayer: PokerRoundPlayer | undefined, startBet: number | undefined) {
-        if (!roundPlayer || !startBet) {
+        if (roundPlayer == undefined || startBet == undefined) {
             this.roundPlayer = new PokerRoundPlayer(undefined);
             this.id = '0';
             this.bet = 0;
@@ -36,14 +36,17 @@ export class PokerBettingRound {
     anyBets: boolean = false;
     
     currentHighBet: number = 0;
+    maxBet: number;
     endOfRound: boolean = false;
     
-    constructor(players: PokerRoundPlayer[] | undefined, startBet: number | undefined) {
-        if (!players || !startBet) {
+    constructor(players: PokerRoundPlayer[] | undefined, startBet: number | undefined, maxBet: number | undefined) {
+        if (players == undefined || startBet == undefined || maxBet == undefined) {
             this.bettingPlayers = [];
+            this.maxBet = 0;
             return;
         }
         
+        this.maxBet = maxBet;
         this.currentHighBet = startBet;
         this.bettingPlayers = players.map(player => new PokerBettingPlayer(player, startBet));
     }
@@ -63,9 +66,10 @@ export class PokerBettingRound {
         if (player.bet > this.currentHighBet)
             throw 'Tried to call for a player with more than the current bet?'; // Sanity check
         
+        const playerBalance = player.roundPlayer.gamePlayer.balance;
         const amountToMatch = this.currentHighBet - player.bet;
-        const allIn = player.roundPlayer.gamePlayer.balance <= amountToMatch;
-        return { amount: allIn ? player.roundPlayer.gamePlayer.balance : amountToMatch, allIn: allIn };
+        const allIn = playerBalance <= amountToMatch || this.currentHighBet == this.maxBet;
+        return { amount: amountToMatch, allIn: allIn };
     }
     
     checkForEndOfRound(): void {

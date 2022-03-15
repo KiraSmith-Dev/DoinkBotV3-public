@@ -28,7 +28,8 @@ export async function execute(interaction: XButtonInteraction, gameID: string) {
     await pokerGame.deleteFromDatabase();
     
     const embed = new MessageEmbed()
-        .setTitle(`Poker Game: Canceled by <@${interaction.user.id}>`)
+        .setTitle('Poker Game')
+        .setDescription(`Canceled by <@${interaction.user.id}>`)
         .setColor(colors.error);
     
     return interaction.editReply({ embeds: [embed], components: [] });
