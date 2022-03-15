@@ -13,6 +13,6 @@ export const options: XOptions = {
 };
 
 export async function execute(interaction: XCommandInteraction) {
-	const embed = embedSingle(`<@${interaction.user.id}>'s downvote count`, String(await getUserReactionCount(interaction.user.id, 'Downvote')));
+	const embed = embedSingle(`Downvote count`, `<@${interaction.user.id}>'s Downvotes: ${await getUserReactionCount(interaction.user.id, 'Downvote')}`);
     await interaction.editReply({ embeds: [embed], components: [] });
 }

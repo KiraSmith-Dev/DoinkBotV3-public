@@ -14,6 +14,6 @@ export const options: XOptions = {
 
 export async function execute(interaction: XCommandInteraction) {
     const netScore = (await getUserReactionCount(interaction.user.id, 'heart')) - (await getUserReactionCount(interaction.user.id, 'downvote'));
-    const embed = embedSingle(`<@${interaction.user.id}>'s net score`, String(netScore));
+    const embed = embedSingle(`Net score`, `<@${interaction.user.id}>'s net score: ${netScore}`);
     await interaction.editReply({ embeds: [embed], components: [] });
 }
