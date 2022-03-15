@@ -1,12 +1,10 @@
 import { PokerBettingRound } from './pokerBettingRound';
 import { PokerCardRound, SolvedHand } from './pokerCardRound';
 import { Type, Exclude } from 'class-transformer';
-import { PokerGamePlayer, PokerGameType, PokerRoundPlayer } from './pokerTypes';
+import { PokerRoundPlayer } from './pokerTypes';
 import { PokerGame } from './pokerGame';
 import { rotate } from '$modules/arrayUtil';
 import { random } from '$modules/random';
-import { InteractionUpdateOptions, MessageActionRow, MessageButton, MessageSelectMenu } from 'discord.js';
-import generateHandImage from './generateHandImage';
 import { Hand } from './cards';
 import { genCoinLabel } from '$modules/genCoinLabel';
 

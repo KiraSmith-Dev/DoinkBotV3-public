@@ -5,9 +5,6 @@ import { XButtonInteraction, XOptions } from '$core/coreTypes';
 import { createCanvas, loadImage } from 'canvas';
 import { store } from '$modules/imageServer';
 import pathAlias from 'path-alias';
-import { generatePlayerInfoCanvas } from '../modules/generatePlayerInfo'; // temp
-import { generateRoundInfoCanvas } from '../modules/generateRoundInfo'; // temp
-import { generateStatusCanvas } from '../modules/generateStatus';
 
 export const options: XOptions = {
     ephemeral: true

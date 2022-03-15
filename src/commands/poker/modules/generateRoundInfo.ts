@@ -1,5 +1,4 @@
 import { Canvas, createCanvas } from 'canvas';
-import { PokerBettingPlayer } from './pokerBettingRound';
 import { PokerRound } from './pokerRound';
 
 const displayWidth = 1200;

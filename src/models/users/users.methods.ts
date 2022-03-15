@@ -1,5 +1,4 @@
-import { Document } from 'mongoose';
-import { IUserDocument, IUserModel } from './users.types';
+import { IUserDocument } from './users.types';
 
 // Legacy imports to interact with poker
 import { getDB } from '$modules/rawDatabase';

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { XButtonInteraction, XCommandInteraction, XOptions } from '$core/coreTypes';
+import { XCommandInteraction, XOptions } from '$core/coreTypes';
 import { embedSingle } from '$modules/embedUtil';
 
 export const data = new SlashCommandBuilder()

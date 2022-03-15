@@ -1,11 +1,11 @@
-import { cardsToSolveFormat, Dealer, getImage } from './cards';
+import { getImage } from './cards';
 import { Canvas, createCanvas, NodeCanvasRenderingContext2D } from 'canvas';
 import { trimTransparency } from '$modules/canvasUtil';
 
 const displayCardWidth = 100;
 const displayCardHeight = Math.round(1056 * (displayCardWidth / 691));
 const displayCardPadding = 10;
-const displayCardTotalSpace = displayCardWidth + displayCardPadding;
+//const displayCardTotalSpace = displayCardWidth + displayCardPadding;
 
 const amountToRotate = (60 / 4);
 const widthRotationPadding = displayCardWidth / 3;

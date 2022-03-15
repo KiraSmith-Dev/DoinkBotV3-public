@@ -1,4 +1,3 @@
-import { SelectMenuInteraction } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
 import { XSelectMenuInteraction, XOptions } from '$core/coreTypes';
 

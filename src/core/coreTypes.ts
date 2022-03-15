@@ -1,4 +1,4 @@
-import { Collection, ButtonInteraction, CommandInteraction, SelectMenuInteraction, Interaction, InteractionReplyOptions, MessagePayload } from 'discord.js';
+import { ButtonInteraction, CommandInteraction, SelectMenuInteraction, InteractionReplyOptions, MessagePayload } from 'discord.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { embedError, embedOK } from '$modules/embedUtil';
 

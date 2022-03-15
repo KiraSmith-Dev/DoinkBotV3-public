@@ -1,4 +1,3 @@
-import { XButtonInteraction, XCommandInteraction, XSelectMenuInteraction } from '$core/coreTypes';
 import { GlobalModel, GlobalDocument } from '$models/global/global.types';
 
 export interface IReaction {

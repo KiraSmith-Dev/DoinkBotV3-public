@@ -1,4 +1,3 @@
-import { ButtonInteraction } from 'discord.js';
 import { PokerGame } from '$commands/poker/modules/pokerGame';
 import { XButtonInteraction, XOptions } from '$core/coreTypes';
 

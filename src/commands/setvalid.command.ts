@@ -14,7 +14,6 @@ export const data = new SlashCommandBuilder()
         option.setName('messageurl')
             .setDescription('Message to set state of')
             .setRequired(true));
-    
 
 export const options: XOptions = {
 	ephemeral: true
