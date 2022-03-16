@@ -7,7 +7,7 @@ import { DeleteResult, UpdateResult, ObjectId } from 'mongodb';
 import { PokerGamePlayer, PokerGameType } from './pokerTypes';
 import { PokerRound } from './pokerRound';
 import generateStatus from './generateStatus';
-import { store } from '$modules/imageServer';
+import { deleteImage, store } from '$modules/imageServer';
 import { colors } from '$config';
 import { UserModel } from '$models/users/users.model';
 const db = getDB();
@@ -17,6 +17,7 @@ export class PokerGame {
     _id: string = new ObjectId().toHexString();
     deleted: boolean = false;
     lastActivity: number = Date.now();
+    lastImageURL: string = '';
     
     buyInCost: number;
     maxBet: number;
@@ -338,6 +339,8 @@ export class PokerGame {
         if (!this.round)
             throw 'Tried to generate interaction update outside of poker round';
         
+        
+        
         if (this.round.finished) {
             await this.deleteFromDatabase();
             
@@ -349,6 +352,12 @@ export class PokerGame {
                 .setDescription(this.round.endStatus)
                 .setImage(url)
                 .setColor(colors.poker);
+            
+            if (this.lastImageURL.length)
+                await deleteImage(this.lastImageURL);
+            
+            this.lastImageURL = url;
+            
             return { embeds: [embed], components: [] };
         }
         
@@ -359,6 +368,11 @@ export class PokerGame {
                 .setTitle(`Poker game - Buy in: ${this.buyInCost} - Max bet: ${this.maxBet}`)
                 .setImage(url)
                 .setColor(colors.poker);
+        
+        if (this.lastImageURL.length)
+            await deleteImage(this.lastImageURL);
+        
+        this.lastImageURL = url;
         
         return { embeds: [embed], components: this.generateComponents() };
     }

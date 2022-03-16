@@ -12,12 +12,11 @@ export function listen(): Promise<void> {
     
     app.get('*', async (req, res) => {
         useTryAsync(async () => {
-            const image = (await images.findOne({ _id: ObjectId.createFromHexString(req.url.substr(1)) }));
+            const image = (await images.findOne({ _id: ObjectId.createFromHexString(req.url.substring(1)) }));
             //const doc = image.value as { data: Binary } | null;
             const doc = image as { data: Binary } | null;
             
-            if (//!image.ok || 
-            !doc)
+            if (!doc)
                 return res.end();
             
             res.type('image/png');
@@ -38,4 +37,11 @@ export async function store(data: Buffer): Promise<string> {
     const images = db.collection('images');
     
     return `${config.imageServerURL}:${config.imageServerPort}/` + (await images.insertOne({ data: data })).insertedId.toHexString();
+}
+
+export async function deleteImage(url: string): Promise<void> {
+    const db = getDB();
+    const images = db.collection('images');
+    
+    await images.deleteOne({ _id: ObjectId.createFromHexString(url.substring(url.length - 24)) });
 }
